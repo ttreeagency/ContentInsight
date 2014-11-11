@@ -1,0 +1,14 @@
+{
+    "name": "ttree/contentinsight",
+    "type": "typo3-flow-package",
+    "description": "Tools to extract basic content inventory information from an existing website",
+    "require": {
+        "typo3/flow": "*",
+        "symfony/dom-crawler": "2.5.*"
+    },
+    "autoload": {
+        "psr-0": {
+            "Ttree\\ContentInsight": "Classes"
+        }
+    }
+}

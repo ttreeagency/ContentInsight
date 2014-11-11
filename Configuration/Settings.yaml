@@ -1,0 +1,6 @@
+Ttree:
+  ContentInsight:
+    cache:
+      enabled: TRUE
+    crawling:
+      maximumDepth: 1000
