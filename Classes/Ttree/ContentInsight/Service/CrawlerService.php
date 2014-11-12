@@ -8,6 +8,7 @@ namespace Ttree\ContentInsight\Service;
 
 use Symfony\Component\DomCrawler\Crawler;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Http\Client\CurlEngineException;
 use TYPO3\Flow\Http\Uri;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Utility\Arrays;
@@ -77,33 +78,38 @@ class CrawlerService {
 			return;
 		}
 
-		$this->scheduleUriCrawling($uri);
+		try {
+			$this->scheduleUriCrawling($uri);
 
-		$response = $this->downloader->get($uri);
-		$this->setProcessedUriProperty($uri, 'status_code', $response->getStatusCode());
-		if ($response->getStatusCode() !== 200) {
-			$this->systemLogger->log(sprintf('URI "%s" skipped, invalid status code', $uri));
-			return;
+			$response = $this->downloader->get($uri);
+			$this->setProcessedUriProperty($uri, 'status_code', $response->getStatusCode());
+			if ($response->getStatusCode() !== 200) {
+				$this->systemLogger->log(sprintf('URI "%s" skipped, invalid status code', $uri));
+				return;
+			}
+
+			$contentType = $response->getHeader('Content-Type');
+			$this->setProcessedUriProperty($uri, 'content_type', $contentType);
+			if (strpos($contentType, 'text/html') === FALSE) {
+				$this->systemLogger->log(sprintf('URI "%s" skipped, invalid content type', $uri));
+				return;
+			}
+
+			$content = new Crawler($response->getContent());
+
+			$this->extractTitle($uri, $content);
+			$this->extractMetaDescription($uri, $content);
+			$this->extractMetaKeywords($uri, $content);
+			$this->extractFirstLevelHeader($uri, $content);
+
+			$this->setVisited($uri);
+			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
+
+			$this->processChildLinks($uri, $content, $depth);
+		} catch (CurlEngineException $exception) {
+			$this->systemLogger->log(sprintf('URI "%s" skipped, curl error', $uri));
+			$this->systemLogger->logException($exception);
 		}
-
-		$contentType = $response->getHeader('Content-Type');
-		$this->setProcessedUriProperty($uri, 'content_type', $contentType);
-		if (strpos($contentType, 'text/html') === FALSE) {
-			$this->systemLogger->log(sprintf('URI "%s" skipped, invalid content type', $uri));
-			return;
-		}
-
-		$content = new Crawler($response->getContent());
-
-		$this->extractTitle($uri, $content);
-		$this->extractMetaDescription($uri, $content);
-		$this->extractMetaKeywords($uri, $content);
-		$this->extractFirstLevelHeader($uri, $content);
-
-		$this->setVisited($uri);
-		$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
-
-		$this->processChildLinks($uri, $content, $depth);
 	}
 
 	/**
@@ -235,7 +241,7 @@ class CrawlerService {
 					$currentLinks[$nodeKey]['frequency'] = isset($currentLinks[$nodeKey]['frequency']) ? $currentLinks[$nodeKey]['frequency']++ : 1;
 				}
 			} catch (\InvalidArgumentException $exception) {
-				
+
 			}
 
 		});
