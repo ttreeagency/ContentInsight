@@ -287,6 +287,7 @@ class CrawlerService {
 	public function isValidUri($uri) {
 		$stopLinks = array(
 			'@^javascript\:void\(0\)$@',
+			'@^mailto\:.*@',
 			'@^#.*@',
 		);
 
