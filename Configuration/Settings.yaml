@@ -1,6 +1,8 @@
 Ttree:
   ContentInsight:
     cache:
+      # Enable Raw HTTP response cache
       enabled: TRUE
     crawling:
+      # Limit website crawling depth
       maximumDepth: 1000
