@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 composer selfupdate --quiet
 
 cat <<EOF > composer.json
