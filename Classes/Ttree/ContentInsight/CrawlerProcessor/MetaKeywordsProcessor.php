@@ -26,7 +26,7 @@ class MetaKeywordsProcessor implements ProcessorInterface {
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
 		$keywords = NULL;
 		try {
-			$keywords = $content->filterXPath('html/head/meta[@name="meta_keywords"]/@content')->text();
+			$keywords = $content->filterXPath('html/head/meta[@name="keywords"]/@content')->text();
 		} catch (\InvalidArgumentException $exception) {
 
 		}

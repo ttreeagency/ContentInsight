@@ -104,7 +104,7 @@ class ReportConfigurationDefinition {
 	 * @param string|array $path
 	 * @return bool
 	 */
-	public function getPropertyByPath($path) {
-		return (boolean)Arrays::getValueByPath($this->configuration, $path);
+	public function getConfigurationByPath($path) {
+		return Arrays::getValueByPath($this->configuration, $path);
 	}
 }

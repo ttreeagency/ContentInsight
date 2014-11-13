@@ -26,13 +26,16 @@ class PageTitleProcessor implements ProcessorInterface {
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
 		$title = NULL;
 		try {
-			$title = $content->filterXPath('html/head/title')->text();
+			$title = trim($content->filterXPath('html/head/title')->text());
 			$uriDefinition = $crawler->getProcessedUri($uri);
 			if (!$uriDefinition->getProperty('external_link')) {
 				$depth = $uriDefinition->getProperty('depth') - 1 ?: 0;
 				if ($depth > 0) {
-					$prefix = str_pad('', $depth, "\t", STR_PAD_LEFT);
-					$title = sprintf('%s %s', $prefix, $title);
+					$prefix = '';
+					for ($i = 0; $i <= $depth; $i++) {
+						$prefix .= "\t";
+					}
+					$title = sprintf('%s%s', $prefix, $title);
 				}
 			}
 		} catch (\InvalidArgumentException $exception) {

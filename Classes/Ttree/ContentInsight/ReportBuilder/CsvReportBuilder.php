@@ -28,7 +28,7 @@ class CsvReportBuilder implements ReportBuilderInterface {
 		$reportPathAndFilename = $this->getReportPathAndFilename($reportConfiguration);
 		$report = fopen($reportPathAndFilename, 'w');
 		$properties = $reportConfiguration->getProperties();
-		if ($reportConfiguration->getPropertyByPath('renderTypeOptions.displayColumnHeaders') === TRUE) {
+		if ($reportConfiguration->getConfigurationByPath('renderTypeOptions.displayColumnHeaders') === TRUE) {
 			fputcsv($report, $this->renderHeaderRow($properties));
 		}
 		foreach ($inventory as $inventoryRow) {

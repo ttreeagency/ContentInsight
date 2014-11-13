@@ -27,10 +27,7 @@ class PresetDefinition {
 	 * @return array<ReportConfigurationDefinition>
 	 */
 	public function getReportConfigurations() {
-		static $reportConfigurations = NULL;
-		if (is_array($reportConfigurations)) {
-			return $reportConfigurations;
-		}
+		$reportConfigurations = array();
 		foreach (Arrays::getValueByPath($this->preset, 'reportConfigurations') ?: array() as $reportConfiguration) {
 			$reportConfigurations[] = new ReportConfigurationDefinition($reportConfiguration);
 		}
