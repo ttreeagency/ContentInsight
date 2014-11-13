@@ -8,6 +8,7 @@ namespace Ttree\ContentInsight\Service;
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
 use Ttree\ContentInsight\Domain\Model\PresetDefinition;
+use Ttree\ContentInsight\Domain\Model\UriDefinition;
 use Ttree\ContentInsight\Service\CrawlerProcessor\ProcessorInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\CurlEngineException;
@@ -374,20 +375,36 @@ class Crawler {
 
 	/**
 	 * @param string $uri
-	 * @param string $property
-	 * @param string $value
+	 * @param string $propertyName
+	 * @param string $propertyValue
+	 * @return $this
 	 */
-	protected function setProcessedUriProperty($uri, $property, $value) {
-		$this->processedUri = Arrays::setValueByPath($this->processedUri, array($this->getUriKey($uri), $property), $value);
+	protected function setProcessedUriProperty($uri, $propertyName, $propertyValue) {
+		$key = $this->getUriKey($uri);
+		if (!isset($this->processedUri[$key])) {
+			$this->processedUri[$key] = new UriDefinition();
+		}
+		/** @var UriDefinition $uriDefinition */
+		$uriDefinition = $this->processedUri[$key];
+		$uriDefinition->setProperty($propertyName, $propertyValue);
+
+		return $this;
 	}
 
 	/**
 	 * @param string $uri
-	 * @param string $property
+	 * @param string $propertyName
 	 * @return mixed
 	 */
-	protected function getProcessedUriProperty($uri, $property) {
-		return Arrays::getValueByPath($this->processedUri, array($this->getUriKey($uri), $property));
+	protected function getProcessedUriProperty($uri, $propertyName) {
+		$key = $this->getUriKey($uri);
+		if (!isset($this->processedUri[$key])) {
+			return NULL;
+		}
+		/** @var UriDefinition $uriDefinition */
+		$uriDefinition = $this->processedUri[$key];
+
+		return $uriDefinition->getProperty($propertyName);
 	}
 
 	/**
