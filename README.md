@@ -12,11 +12,12 @@ Features
 * Support crawling presets
 * Flexible report building (include a CSV report builder, but you can register your own report builder)
 * Skip URI with regular expression
+* Sort inventory based on document tree structure
 
 Todos
 -----
 
-* Sort result based on document tree level
+* Generate human readable page ID (like, 1, 1.1, 1.2, 2, 2.1, 2.2, ...)
 * Update report / multiple index support
 * Get analytics data from Google Analytics
 
