@@ -24,6 +24,38 @@ Ttree:
             enabled: TRUE
       # Default preset
       'default':
+        reportConfigurations:
+          'csv':
+            enabled: TRUE
+            renderType: 'Csv'
+            renderTypeOptions:
+              displayColumnHeaders: TRUE
+            reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
+            reportPrefix: 'content-inventory-report'
+            properties:
+              'id':
+                label: 'ID'
+              'page_title':
+                label: 'Page Title'
+              'navigation_title':
+                label: 'Navigation Title'
+              'status_code':
+                label: 'Status Code'
+              'external_link':
+                label: 'External Link'
+                postProcessor: 'Boolean'
+              'current_uri':
+                label: 'URL'
+              'meta_description':
+                label: 'Meta Description'
+              'meta_keywords':
+                label: 'Meta Keywords'
+              'first_level_header_count':
+                label: 'Main Header Count (H1)'
+              'first_level_header_content':
+                label: 'Main Header Content (H1)'
+              'remark':
+                label: 'Crawling Remark'
         properties:
           'meta_description':
             enabled: TRUE

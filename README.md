@@ -10,13 +10,13 @@ Features
 
 * Extract website structure and basic meta data
 * Support crawling presets
+* Flexible report building (include a CSV report builder, but you can register your own report builder)
+* Skip URI with regular expression
 
 Todos
 -----
 
 * Sort result based on document tree level
-* Crawler advanced configuration (skipping path, URI filtering, ...)
-* Build CSV / XLS / Google Spreadsheet report based on extracted data
 * Update report / multiple index support
 * Get analytics data from Google Analytics
 
@@ -68,6 +68,53 @@ Ttree:
           'first_level_header':
             enabled: TRUE
 ```
+
+How to build a report ?
+-----------------------
+
+The package support CSV reporting, but you can register your own Report builder. Check the ``Settings.yaml``:
+
+```yaml
+Ttree:
+  ContentInsight:
+    presets:
+      'custom':
+		reportConfigurations:
+          'csv':
+            enabled: TRUE
+            renderType: 'Csv'
+            renderTypeOptions:
+              displayColumnHeaders: TRUE
+            reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
+            reportPrefix: 'content-inventory-report'
+            properties:
+              'id':
+                label: 'ID'
+              'page_title':
+                label: 'Page Title'
+              'navigation_title':
+                label: 'Navigation Title'
+              'external_link':
+                label: 'External Link'
+                postProcessor: 'Boolean'
+              'current_uri':
+                label: 'URL'
+              'meta_description':
+                label: 'Meta Description'
+              'meta_keywords':
+                label: 'Meta Keywords'
+              'first_level_header_count':
+                label: 'Main Header Count (H1)'
+              'first_level_header_content':
+                label: 'Main Header Content (H1)'
+              'remark':
+                label: 'Crawling Remark'
+```
+
+The keys in the ``properties`` section must match the key produced by the ``CrawlerProcessor`` object.
+
+For a single crawling preset you can register multiple reports if required. Foreach property you can register a post 
+processor if you need to manipulate the property in the report, see ``BooleanPostProcessor`` for a basic example.
 
 How to skip specific URI ?
 --------------------------

@@ -24,6 +24,27 @@ class PresetDefinition {
 	}
 
 	/**
+	 * @return array<ReportConfigurationDefinition>
+	 */
+	public function getReportConfigurations() {
+		static $reportConfigurations = NULL;
+		if (is_array($reportConfigurations)) {
+			return $reportConfigurations;
+		}
+		foreach (Arrays::getValueByPath($this->preset, 'reportConfigurations') ?: array() as $reportConfiguration) {
+			$reportConfigurations[] = new ReportConfigurationDefinition($reportConfiguration);
+		}
+		return $reportConfigurations;
+	}
+
+	/**
+	 * @return array
+	 */
+	public function getPropertyNames() {
+		return array_keys($this->getProperties());
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getProperties() {
