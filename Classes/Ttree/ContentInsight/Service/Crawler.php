@@ -33,6 +33,12 @@ class Crawler {
 
 	/**
 	 * @Flow\Inject
+	 * @var UriService
+	 */
+	protected $uriService;
+
+	/**
+	 * @Flow\Inject
 	 * @var SystemLoggerInterface
 	 */
 	protected $systemLogger;
@@ -224,8 +230,8 @@ class Crawler {
 		$content->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
 			try {
 				$nodeText = trim($node->text());
-				$nodeLink = $this->normalizeUri($node->attr('href'));
-				$nodeKey = $this->getUriKey($nodeLink);
+				$nodeLink = $this->uriService->normalizeUri($this->baseUri, $node->attr('href'));
+				$nodeKey = $this->uriService->getUriKey($nodeLink);
 
 				if (!isset($this->processedUri[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
 					$currentLinks[$nodeKey]['original_urls'] = $nodeLink;
@@ -242,7 +248,7 @@ class Crawler {
 					if (!$crawlable) {
 						$currentLinks[$nodeKey]['dont_visit'] = TRUE;
 						$currentLinks[$nodeKey]['external_link'] = FALSE;
-					} elseif ($this->checkIfExternal($currentLinks[$nodeKey]['absolute_url'])) {
+					} elseif ($this->uriService->checkIfExternal($this->baseUri, $currentLinks[$nodeKey]['absolute_url'])) {
 						$currentLinks[$nodeKey]['external_link'] = TRUE;
 					} else {
 						$currentLinks[$nodeKey]['external_link'] = FALSE;
@@ -267,57 +273,6 @@ class Crawler {
 	}
 
 	/**
-	 * Return TRUE if the given URI is an external URI
-	 *
-	 * @param string $uri
-	 * @return boolean
-	 */
-	protected function checkIfExternal($uri) {
-		if (preg_match(sprintf('@http(s)?\://%s@', $this->baseUri->getHost()), $uri)) { //base url is not the first portion of the url
-			return FALSE;
-		} else {
-			return TRUE;
-		}
-	}
-
-	/**
-	 * Normalize URI, transform relative URL to absolute
-	 *
-	 * @param string $uri
-	 * @return string
-	 */
-	protected function normalizeUri($uri) {
-		if (!$this->isValidUri($uri)) {
-			throw new \InvalidArgumentException('Invalid URI, unable to normalize', 1415749025);
-		}
-		if (!preg_match("@^http(s)?@", $uri)) {
-			$uri = $this->baseUri->getScheme() . '://' . $this->baseUri->getHost() . $uri;
-		}
-
-		return $uri;
-	}
-
-	/**
-	 * @param string $uri
-	 * @return boolean
-	 */
-	protected function isValidUri($uri) {
-		$stopLinks = array(
-			'@^javascript\:void\(0\)$@',
-			'@^mailto\:.*@',
-			'@^#.*@',
-		);
-
-		foreach ($stopLinks as $pattern) {
-			if (preg_match($pattern, (string)$uri)) {
-				return FALSE;
-			}
-		}
-
-		return TRUE;
-	}
-
-	/**
 	 * @param Uri $uri
 	 */
 	protected function scheduleUriCrawling(Uri $uri) {
@@ -325,7 +280,7 @@ class Crawler {
 		$this->setProcessedUriProperties($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
-			'external_link' => $this->checkIfExternal($uri),
+			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
 			'current_uri' => (string)$uri,
 		));
 	}
@@ -356,7 +311,7 @@ class Crawler {
 			return FALSE;
 		}
 
-		if (!$this->isValidUri($uri)) {
+		if (!$this->uriService->isValidUri($uri)) {
 			return FALSE;
 		}
 
@@ -380,7 +335,7 @@ class Crawler {
 	 * @return $this
 	 */
 	protected function setProcessedUriProperty($uri, $propertyName, $propertyValue) {
-		$key = $this->getUriKey($uri);
+		$key = $this->uriService->getUriKey($uri);
 		if (!isset($this->processedUri[$key])) {
 			$this->processedUri[$key] = new UriDefinition();
 		}
@@ -397,7 +352,7 @@ class Crawler {
 	 * @return mixed
 	 */
 	protected function getProcessedUriProperty($uri, $propertyName) {
-		$key = $this->getUriKey($uri);
+		$key = $this->uriService->getUriKey($uri);
 		if (!isset($this->processedUri[$key])) {
 			return NULL;
 		}
@@ -405,13 +360,5 @@ class Crawler {
 		$uriDefinition = $this->processedUri[$key];
 
 		return $uriDefinition->getProperty($propertyName);
-	}
-
-	/**
-	 * @param string $uri
-	 * @return string
-	 */
-	protected function getUriKey($uri) {
-		return md5(trim(str_replace(array('http://', 'https://'), '', (string)$uri), '/'));
 	}
 }
