@@ -7,6 +7,7 @@ namespace Ttree\ContentInsight\Command;
  *                                                                        */
 
 use Ttree\ContentInsight\Service\Crawler;
+use Ttree\ContentInsight\Service\ReportBuilder;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Cli\CommandController;
 use TYPO3\Flow\Http\Uri;
@@ -23,6 +24,12 @@ class ContentInventorCommandController extends CommandController {
 	protected $crawlerService;
 
 	/**
+	 * @Flow\Inject
+	 * @var ReportBuilder
+	 */
+	protected $reportBuilder;
+
+	/**
 	 *  Extract basic content inventory from the give base URL
 	 *
 	 * @param string $baseUrl
@@ -37,13 +44,13 @@ class ContentInventorCommandController extends CommandController {
 			$inventory = $this->crawlerService
 				->setPreset($preset)
 				->crawleFromBaseUri($baseUrl);
-			var_dump($inventory);
+			$this->reportBuilder->build($inventory, $this->crawlerService->getCurrentPreset());
 			$this->outputLine('Page count: %d', array(count($inventory)));
-		} catch (\InvalidArgumentException $exception) {
+		} catch (\Exception $exception) {
+			$this->outputLine();
 			$this->outputLine('Something break ...');
-			$this->outputLine(get_class($exception));
-			$this->outputLine($exception->getCode());
-			$this->outputLine($exception->getMessage());
+			$this->outputLine('-> Exception: ' . get_class($exception));
+			$this->outputLine('-> Message: ' . $exception->getMessage());
 			$this->sendAndExit(1);
 		}
 	}
