@@ -6,18 +6,23 @@ namespace Ttree\ContentInsight\Service;
  *                                                                        *
  *                                                                        */
 
-use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\DomCrawler\Crawler as DomCrawler;
+use Ttree\ContentInsight\Domain\Model\PresetDefinition;
+use Ttree\ContentInsight\Service\CrawlerProcessor\ProcessorInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\CurlEngineException;
 use TYPO3\Flow\Http\Uri;
 use TYPO3\Flow\Log\SystemLoggerInterface;
+use TYPO3\Flow\Object\ObjectManager;
+use TYPO3\Flow\Reflection\ReflectionService;
 use TYPO3\Flow\Utility\Arrays;
 
 /**
- * Web Crawler Service
+ * Website Crawler
+ *
  * @Flow\Scope("singleton")
  */
-class CrawlerService {
+class Crawler {
 
 	/**
 	 * @Flow\Inject
@@ -30,6 +35,18 @@ class CrawlerService {
 	 * @var SystemLoggerInterface
 	 */
 	protected $systemLogger;
+
+	/**
+	 * @Flow\Inject
+	 * @var ObjectManager
+	 */
+	protected $objectManager;
+
+	/**
+	 * @Flow\Inject
+	 * @var ReflectionService
+	 */
+	protected $reflectionService;
 
 	/**
 	 * @var array
@@ -45,16 +62,55 @@ class CrawlerService {
 	 * @Flow\Inject(setting="crawling.maximumDepth")
 	 * @var integer
 	 */
-	protected $maximumDepth = 100;
+	protected $maximumDepth;
+
+	/**
+	 * @Flow\Inject(setting="presets")
+	 * @var integer
+	 */
+	protected $presets = 100;
+
+	/**
+	 * @var PresetDefinition
+	 */
+	protected $currentPreset = array();
+
+	/**
+	 * Initialize Object
+	 */
+	public function initializeObject() {
+		$this->setPreset();
+	}
+
+	/**
+	 * @param string $preset
+	 * @return $this
+	 */
+	public function setPreset($preset = NULL) {
+		$preset = $preset ?: '*';
+		if (!isset($this->presets[$preset])) {
+			throw new \InvalidArgumentException('Invalid preset', 1415749035);
+		}
+
+		if ($preset !== '*') {
+			$currentPreset = Arrays::arrayMergeRecursiveOverrule($this->presets['*'], $this->presets[$preset]);
+		} else {
+			$currentPreset = $this->presets['*'];
+		}
+
+		$this->currentPreset = new PresetDefinition($currentPreset);
+
+		return $this;
+	}
 
 	/**
 	 * @param string $baseUri
 	 * @return array
 	 */
-	public function processFromBaseUri($baseUri) {
+	public function crawleFromBaseUri($baseUri) {
 		$baseUri = new Uri(trim($baseUri, '/'));
 		$this->baseUri = $baseUri;
-		$this->processSingleUri($baseUri, $this->maximumDepth);
+		$this->crawleSingleUri($baseUri, $this->maximumDepth);
 
 		return $this->processedUri;
 	}
@@ -62,8 +118,9 @@ class CrawlerService {
 	/**
 	 * @param Uri $uri
 	 * @param integer $depth
+	 * @return void
 	 */
-	public function processSingleUri(Uri $uri, $depth) {
+	public function crawleSingleUri(Uri $uri, $depth) {
 		if (!$this->checkIfCrawlable($uri)) {
 			return;
 		}
@@ -95,14 +152,19 @@ class CrawlerService {
 				return;
 			}
 
-			$content = new Crawler($response->getContent());
+			$content = new DomCrawler($response->getContent());
 
-			$this->extractTitle($uri, $content);
-			$this->extractMetaDescription($uri, $content);
-			$this->extractMetaKeywords($uri, $content);
-			$this->extractFirstLevelHeader($uri, $content);
+			foreach ($this->currentPreset->getProperties() as $propertyName) {
+				$processor = $this->getProcessorByPropertyName($propertyName);
+				$result = $processor->process($uri, $content);
+				if (is_array($result)) {
+					$this->setProcessedUriProperties($uri, $result);
+				} else {
+					$this->setProcessedUriProperty($uri, $propertyName, $result);
+				}
+			}
 
-			$this->setVisited($uri);
+			$this->setProcessedUriProperty($uri, 'visited', TRUE);
 			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
 
 			$this->processChildLinks($uri, $content, $depth);
@@ -113,11 +175,27 @@ class CrawlerService {
 	}
 
 	/**
+	 * @param string $propertyName
+	 * @return ProcessorInterface
+	 * @throws \TYPO3\Flow\Object\Exception\UnknownObjectException
+	 */
+	protected function getProcessorByPropertyName($propertyName) {
+		$processorClassName = sprintf('Ttree\ContentInsight\Service\CrawlerProcessor\%sProcessor', str_replace(' ', '', ucwords(str_replace('_', ' ', trim($propertyName)))));
+		/** @var ProcessorInterface $processor */
+		$processor = $this->objectManager->get($processorClassName);
+		if (!$processor instanceof ProcessorInterface) {
+			throw new \InvalidArgumentException('Processor must implement ProcessorInterface', 1415749045);
+		}
+
+		return $processor;
+	}
+
+	/**
 	 * @param Uri $uri
-	 * @param Crawler $content
+	 * @param DomCrawler $content
 	 * @param integer $depth
 	 */
-	public function processChildLinks(Uri $uri, Crawler $content, $depth) {
+	protected function processChildLinks(Uri $uri, DomCrawler $content, $depth) {
 		foreach ($this->extractChildLinks($uri, $content) as $childLink) {
 			try {
 				if ($depth == 0) {
@@ -128,7 +206,7 @@ class CrawlerService {
 					continue;
 				}
 				$childLinkUri = new Uri($childLink['original_urls']);
-				$this->processSingleUri($childLinkUri, --$depth);
+				$this->crawleSingleUri($childLinkUri, --$depth);
 			} catch (\InvalidArgumentException $exception) {
 
 			}
@@ -137,80 +215,12 @@ class CrawlerService {
 
 	/**
 	 * @param Uri $uri
-	 */
-	public function setVisited(Uri $uri) {
-		$this->setProcessedUriProperty($uri, 'visited', TRUE);
-	}
-
-	/**
-	 * @param Uri $uri
-	 * @param Crawler $content
-	 * @return string
-	 */
-	public function extractTitle(Uri $uri, Crawler $content) {
-		try {
-			$title = $content->filterXPath('html/head/title')->text();
-			$this->setProcessedUriProperties($uri, array(
-				'page_title' => $title,
-				'navigation_title' => 'TODO'
-			));
-		} catch (\InvalidArgumentException $exception) {
-			$this->setProcessedUriProperties($uri, array(
-				'page_title' => '',
-				'navigation_title' => ''
-			));
-		}
-	}
-
-	/**
-	 * @param Uri $uri
-	 * @param Crawler $content
-	 */
-	public function extractMetaDescription(Uri $uri, Crawler $content) {
-		try {
-			$this->setProcessedUriProperty($uri, 'meta_description', $content->filterXPath('html/head/meta[@name="description"]/@content')->text());
-		} catch (\InvalidArgumentException $exception) {
-			$this->setProcessedUriProperty($uri, 'meta_description', '');
-		}
-	}
-
-	/**
-	 * @param Uri $uri
-	 * @param Crawler $content
-	 */
-	public function extractMetaKeywords(Uri $uri, Crawler $content) {
-		try {
-			$this->setProcessedUriProperty($uri, 'meta_keywords', $content->filterXPath('html/head/meta[@name="keywords"]/@content')->text());
-		} catch (\InvalidArgumentException $exception) {
-			$this->setProcessedUriProperty($uri, 'meta_keywords', '');
-		}
-	}
-
-	/**
-	 * @param Uri $uri
-	 * @param Crawler $content
-	 */
-	public function extractFirstLevelHeader(Uri $uri, Crawler $content) {
-		$headers = $content->filter('h1');
-		$firstLevelHeaderCounter = $headers->count();
-		$this->setProcessedUriProperty($uri, 'first_level_header_count', $firstLevelHeaderCounter);
-		if ($firstLevelHeaderCounter > 0) {
-			$contents = array();
-			$headers->each(function (Crawler $node, $i) use (&$contents) {
-				$contents[$i] = trim($node->text());
-			});
-			$this->setProcessedUriProperty($uri, 'first_level_header_content', implode($contents, '; '));
-		}
-	}
-
-	/**
-	 * @param Uri $uri
-	 * @param Crawler $content
+	 * @param DomCrawler $content
 	 * @return array
 	 */
-	protected function extractChildLinks(Uri $uri, Crawler $content) {
+	protected function extractChildLinks(Uri $uri, DomCrawler $content) {
 		$currentLinks = array();
-		$content->filter('a')->each(function (Crawler $node) use (&$currentLinks) {
+		$content->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
 			try {
 				$nodeText = trim($node->text());
 				$nodeLink = $this->normalizeUri($node->attr('href'));
@@ -261,7 +271,7 @@ class CrawlerService {
 	 * @param string $uri
 	 * @return boolean
 	 */
-	public function checkIfExternal($uri) {
+	protected function checkIfExternal($uri) {
 		if (preg_match(sprintf('@http(s)?\://%s@', $this->baseUri->getHost()), $uri)) { //base url is not the first portion of the url
 			return FALSE;
 		} else {
@@ -275,7 +285,7 @@ class CrawlerService {
 	 * @param string $uri
 	 * @return string
 	 */
-	public function normalizeUri($uri) {
+	protected function normalizeUri($uri) {
 		if (!$this->isValidUri($uri)) {
 			throw new \InvalidArgumentException('Invalid URI, unable to normalize', 1415749025);
 		}
@@ -290,7 +300,7 @@ class CrawlerService {
 	 * @param string $uri
 	 * @return boolean
 	 */
-	public function isValidUri($uri) {
+	protected function isValidUri($uri) {
 		$stopLinks = array(
 			'@^javascript\:void\(0\)$@',
 			'@^mailto\:.*@',
@@ -327,6 +337,7 @@ class CrawlerService {
 	}
 
 	/**
+	 * @param string $uri
 	 * @return void
 	 */
 	protected function incrementFrequency($uri) {
