@@ -6,7 +6,6 @@ namespace Ttree\ContentInsight\Service;
  *                                                                        *
  *                                                                        */
 
-use Symfony\Component\DomCrawler\Crawler;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\Browser;
 use TYPO3\Flow\Http\Client\CurlEngine;
@@ -14,7 +13,8 @@ use TYPO3\Flow\Http\Client\InfiniteRedirectionException;
 use TYPO3\Flow\Http\Response;
 
 /**
- * Web Crawler Service
+ * Web Page Downloader
+ *
  * @Flow\Scope("singleton")
  */
 class Downloader {
