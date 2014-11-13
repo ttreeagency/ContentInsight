@@ -26,15 +26,16 @@ class ContentInventorCommandController extends CommandController {
 	 *  Extract basic content inventory from the give base URL
 	 *
 	 * @param string $baseUrl
+	 * @param string $preset
 	 */
-	public function extractCommand($baseUrl) {
+	public function extractCommand($baseUrl, $preset = 'default') {
 		$this->outputLine();
 		$this->outputLine('Content Inventory extraction tools ...');
 		try {
 			$uri = new Uri(trim($baseUrl, '/'));
 			$this->outputLine(sprintf('Extract content from "%s%s"', $uri->getHost(), $uri->getPath()));
 			$inventory = $this->crawlerService
-				->setPreset('default')
+				->setPreset($preset)
 				->crawleFromBaseUri($baseUrl);
 			var_dump($inventory);
 			$this->outputLine('Page count: %d', array(count($inventory)));
