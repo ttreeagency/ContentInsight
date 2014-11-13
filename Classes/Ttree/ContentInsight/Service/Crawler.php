@@ -106,6 +106,7 @@ class Crawler {
 		}
 
 		$this->currentPreset = new PresetDefinition($currentPreset);
+		$this->uriService->setInvalidUriPatterns($this->currentPreset->getInvalidUriPatterns());
 
 		return $this;
 	}

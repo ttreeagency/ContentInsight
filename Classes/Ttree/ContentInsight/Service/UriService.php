@@ -8,6 +8,7 @@ namespace Ttree\ContentInsight\Service;
 
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Uri;
+use TYPO3\Flow\Log\SystemLoggerInterface;
 
 /**
  * Web Page Downloader
@@ -15,6 +16,24 @@ use TYPO3\Flow\Http\Uri;
  * @Flow\Scope("singleton")
  */
 class UriService {
+
+	/**
+	 * @Flow\Inject
+	 * @var SystemLoggerInterface
+	 */
+	protected $systemLogger;
+
+	/**
+	 * @var array
+	 */
+	protected $invalidUriPatterns = array();
+
+	/**
+	 * @param array $invalidUriPatterns
+	 */
+	public function setInvalidUriPatterns(array $invalidUriPatterns) {
+		$this->invalidUriPatterns = $invalidUriPatterns;
+	}
 
 	/**
 	 * Normalize URI, transform relative URL to absolute
@@ -39,14 +58,14 @@ class UriService {
 	 * @return boolean
 	 */
 	public function isValidUri($uri) {
-		$stopLinks = array(
-			'@^javascript\:void\(0\)$@',
-			'@^mailto\:.*@',
-			'@^#.*@',
-		);
-
-		foreach ($stopLinks as $pattern) {
-			if (preg_match($pattern, (string)$uri)) {
+		foreach ($this->invalidUriPatterns as $patternConfiguration) {
+			if (!isset($patternConfiguration['pattern'])) {
+				throw new \InvalidArgumentException('Missing pattern', 1415878090);
+			}
+			if (preg_match($patternConfiguration['pattern'], (string)$uri)) {
+				if (isset($patternConfiguration['message']) && is_string($patternConfiguration['message'])) {
+					$this->systemLogger->log(sprintf('URI "%s" skipped, %s', $uri, $patternConfiguration['message']));
+				}
 				return FALSE;
 			}
 		}

@@ -69,6 +69,29 @@ Ttree:
             enabled: TRUE
 ```
 
+How to skip specific URI ?
+--------------------------
+
+You can define invalid URIs patterns in your crawling presets:
+
+```yaml
+Ttree:
+  ContentInsight:
+    presets:
+      'custom':
+        invalidUriPatterns:
+          'javascript':
+            pattern: '@^javascript\:void\(0\)$@'
+          'mailto':
+            pattern: '@^mailto\:.*@'
+          'anchor':
+            pattern: '@^#.*@'
+            message: 'Link to anchor'
+```
+
+If the pattern has a ``message`` all URL matching the pattern will be logged. By default the crawler skip 
+those URLs silently.
+
 Usage
 -----
 

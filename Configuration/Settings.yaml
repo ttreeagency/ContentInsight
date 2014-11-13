@@ -9,10 +9,16 @@ Ttree:
     presets:
       # Base preset, merged with all custom preset
       '*':
+        invalidUriPatterns:
+          'javascript':
+            pattern: '@^javascript\:void\(0\)$@'
+          'mailto':
+            pattern: '@^mailto\:.*@'
+          'anchor':
+            pattern: '@^#.*@'
+            message: 'Link to anchor'
         properties:
           'page_title':
-            # You can use your own ProcessorImplementation
-            # class: 'Ttree\ContentInsight\Service\CrawlerProcessor\PageTitleProcessor'
             enabled: TRUE
           'navigation_title':
             enabled: TRUE

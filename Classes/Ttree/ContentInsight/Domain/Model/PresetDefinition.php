@@ -29,4 +29,11 @@ class PresetDefinition {
 	public function getProperties() {
 		return Arrays::getValueByPath($this->preset, 'properties') ?: array();
 	}
+
+	/**
+	 * @return array
+	 */
+	public function getInvalidUriPatterns() {
+		return Arrays::getValueByPath($this->preset, 'invalidUriPatterns') ?: array();
+	}
 }
