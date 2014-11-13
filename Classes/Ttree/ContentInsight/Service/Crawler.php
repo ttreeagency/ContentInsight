@@ -73,9 +73,9 @@ class Crawler {
 
 	/**
 	 * @Flow\Inject(setting="presets")
-	 * @var integer
+	 * @var array
 	 */
-	protected $presets = 100;
+	protected $presets;
 
 	/**
 	 * @var PresetDefinition
@@ -112,6 +112,13 @@ class Crawler {
 	}
 
 	/**
+	 * @return PresetDefinition
+	 */
+	public function getCurrentPreset() {
+		return $this->currentPreset;
+	}
+
+	/**
 	 * @param string $baseUri
 	 * @return array
 	 */
@@ -133,30 +140,31 @@ class Crawler {
 			return;
 		}
 
+		$this->scheduleUriCrawling($uri);
+
 		if ($this->getProcessedUriProperty($uri, 'external_link') === TRUE) {
-			$this->systemLogger->log(sprintf('URI "%s" skipped, external link', $uri));
+			$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
 			return;
 		}
 
+		$response = $this->downloader->get($uri);
+		$this->setProcessedUriProperty($uri, 'status_code', $response->getStatusCode());
+
 		if (strpos((string)$uri, (string)$this->baseUri) === FALSE) {
-			$this->systemLogger->log(sprintf('URI "%s" skipped, not a children of the base URI', $uri));
+			$this->log($uri, sprintf('URI "%s" skipped, not a children of the base URI', $uri));
 			return;
 		}
 
 		try {
-			$this->scheduleUriCrawling($uri);
-
-			$response = $this->downloader->get($uri);
-			$this->setProcessedUriProperty($uri, 'status_code', $response->getStatusCode());
 			if ($response->getStatusCode() !== 200) {
-				$this->systemLogger->log(sprintf('URI "%s" skipped, invalid status code', $uri));
+				$this->log($uri, sprintf('URI "%s" skipped, invalid status code', $uri));
 				return;
 			}
 
 			$contentType = $response->getHeader('Content-Type');
 			$this->setProcessedUriProperty($uri, 'content_type', $contentType);
 			if (strpos($contentType, 'text/html') === FALSE) {
-				$this->systemLogger->log(sprintf('URI "%s" skipped, invalid content type', $uri));
+				$this->log($uri, sprintf('URI "%s" skipped, invalid content type', $uri));
 				return;
 			}
 
@@ -180,7 +188,7 @@ class Crawler {
 
 			$this->processChildLinks($uri, $content, $depth);
 		} catch (CurlEngineException $exception) {
-			$this->systemLogger->log(sprintf('URI "%s" skipped, curl error', $uri));
+			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
 			$this->systemLogger->logException($exception);
 		}
 	}
@@ -370,5 +378,14 @@ class Crawler {
 		$uriDefinition = $this->processedUri[$key];
 
 		return $uriDefinition->getProperty($propertyName);
+	}
+
+	/**
+	 * @param string $uri
+	 * @param string $message
+	 */
+	protected function log($uri, $message) {
+		$this->setProcessedUriProperty($uri, 'remark', $message);
+		$this->systemLogger->log($message);
 	}
 }
