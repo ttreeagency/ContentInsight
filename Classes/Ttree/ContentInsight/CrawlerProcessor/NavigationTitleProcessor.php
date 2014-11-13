@@ -24,11 +24,10 @@ class NavigationTitleProcessor implements ProcessorInterface {
 	 * @return string
 	 */
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
-		$title = NULL;
 		try {
 			$title = 'TODO';
 		} catch (\InvalidArgumentException $exception) {
-
+			$title = NULL;
 		}
 
 		return $title;

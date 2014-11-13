@@ -24,11 +24,10 @@ class MetaDescriptionProcessor implements ProcessorInterface {
 	 * @return string
 	 */
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
-		$description = NULL;
 		try {
 			$description = $content->filterXPath('html/head/meta[@name="description"]/@content')->text();
 		} catch (\InvalidArgumentException $exception) {
-
+			$description = NULL;
 		}
 
 		return $description;

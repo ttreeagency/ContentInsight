@@ -46,7 +46,7 @@ class ReportConfigurationDefinition {
 	 */
 	public function getReportBuilder() {
 		$reportBuilder = Arrays::getValueByPath($this->configuration, 'renderType');
-		if (strpos($reportBuilder, "\\") === FALSE) {
+		if (strpos($reportBuilder, '\\') === FALSE) {
 			$reportBuilder = sprintf('Ttree\ContentInsight\ReportBuilder\%sReportBuilder', $reportBuilder);
 		}
 

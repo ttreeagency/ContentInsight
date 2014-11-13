@@ -50,7 +50,7 @@ class ReportPropertyDefinition {
 		if ($postProcessor === NULL) {
 			return NULL;
 		}
-		if (strpos($postProcessor, "\\") === FALSE) {
+		if (strpos($postProcessor, '\\') === FALSE) {
 			$postProcessor = sprintf('Ttree\ContentInsight\ReportBuilder\PropertyPostProcessor\%sPostProcessor', $postProcessor);
 		}
 

@@ -19,7 +19,7 @@ class NavigationTitleProcessorTest extends UnitTestCase {
 	 */
 	public function processReturnThePageTitleTagContent() {
 		$processor = new NavigationTitleProcessor();
-		$this->markTestIncomplete("Implementation currently not finished");
+		$this->markTestIncomplete('Implementation currently not finished');
 
 		$uri = $this->getMockBuilder('TYPO3\Flow\Http\Uri')->disableOriginalConstructor()->getMock();
 

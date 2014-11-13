@@ -46,7 +46,7 @@ class UriService {
 		if (!$this->isValidUri($uri)) {
 			throw new \InvalidArgumentException('Invalid URI, unable to normalize', 1415749025);
 		}
-		if (!preg_match("@^http(s)?@", $uri)) {
+		if (!preg_match('@^http(s)?@', $uri)) {
 			$uri = $baseUri->getScheme() . '://' . $baseUri->getHost() . $uri;
 		}
 
@@ -81,7 +81,7 @@ class UriService {
 	 * @return boolean
 	 */
 	public function checkIfExternal(Uri $baseUri, $uri) {
-		if (preg_match(sprintf('@http(s)?\://%s@', $baseUri->getHost()), $uri)) { //base url is not the first portion of the url
+		if (preg_match(sprintf('@http(s)?\://%s@', $baseUri->getHost()), $uri)) {
 			return FALSE;
 		} else {
 			return TRUE;

@@ -24,11 +24,10 @@ class MetaKeywordsProcessor implements ProcessorInterface {
 	 * @return string
 	 */
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
-		$keywords = NULL;
 		try {
 			$keywords = $content->filterXPath('html/head/meta[@name="keywords"]/@content')->text();
 		} catch (\InvalidArgumentException $exception) {
-
+			$keywords = NULL;
 		}
 
 		return $keywords;

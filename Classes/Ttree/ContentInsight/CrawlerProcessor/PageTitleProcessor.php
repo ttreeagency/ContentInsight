@@ -24,7 +24,6 @@ class PageTitleProcessor implements ProcessorInterface {
 	 * @return string
 	 */
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
-		$title = NULL;
 		try {
 			$title = trim($content->filterXPath('html/head/title')->text());
 			$uriDefinition = $crawler->getProcessedUri($uri);
@@ -39,7 +38,7 @@ class PageTitleProcessor implements ProcessorInterface {
 				}
 			}
 		} catch (\InvalidArgumentException $exception) {
-
+			$title = NULL;
 		}
 
 		return $title;

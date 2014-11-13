@@ -253,9 +253,9 @@ class Crawler {
 					continue;
 				}
 				$childLinkUri = new Uri($childLink['original_urls']);
-				$this->crawleSingleUri($childLinkUri, --$depth);
+				$this->crawleSingleUri($childLinkUri, $depth - 1);
 			} catch (\InvalidArgumentException $exception) {
-
+				$this->systemLogger->logException($exception);
 			}
 		}
 	}
@@ -279,7 +279,7 @@ class Crawler {
 
 					$nodeUri = new Uri($nodeLink);
 					$crawlable = $this->checkIfCrawlable($nodeUri);
-					if ($crawlable && !preg_match("@^http(s)?@", $nodeLink)) {
+					if ($crawlable && !preg_match('@^http(s)?@', $nodeLink)) {
 						$currentLinks[$nodeKey]['absolute_url'] = $this->baseUri . $nodeLink;
 					} else {
 						$currentLinks[$nodeKey]['absolute_url'] = $nodeLink;
@@ -298,7 +298,7 @@ class Crawler {
 					$currentLinks[$nodeKey]['frequency'] = isset($currentLinks[$nodeKey]['frequency']) ? $currentLinks[$nodeKey]['frequency']++ : 1;
 				}
 			} catch (\InvalidArgumentException $exception) {
-
+				$this->systemLogger->logException($exception);
 			}
 
 		});
@@ -340,7 +340,7 @@ class Crawler {
 	 */
 	protected function incrementFrequency($uri) {
 		$frequency = $this->getProcessedUriProperty($uri, 'frequency');
-		$this->setProcessedUriProperty($uri, 'frequency', ++$frequency);
+		$this->setProcessedUriProperty($uri, 'frequency', $frequency + 1);
 	}
 
 	/**

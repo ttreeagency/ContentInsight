@@ -18,5 +18,5 @@ before_script:
 - "./BeforeScriptTravis.sh"
 
 script:
-- phpunit -c Build/BuildEssentials/PhpUnit/UnitTests.xml Packages/Application/Ttree.Serializer/Tests/Unit
-- php bin/phpcs --standard=TYPO3Flow Packages/Application/Ttree.Serializer
+- phpunit -c Build/BuildEssentials/PhpUnit/UnitTests.xml Packages/Application/Ttree.ContentInsight/Tests/Unit
+- php bin/phpcs --standard=TYPO3Flow Packages/Application/Ttree.ContentInsight
