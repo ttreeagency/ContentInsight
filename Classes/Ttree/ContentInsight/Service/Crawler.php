@@ -58,7 +58,7 @@ class Crawler {
 	/**
 	 * @var array
 	 */
-	protected $processedUri = array();
+	protected $processedUris = array();
 
 	/**
 	 * @var Uri
@@ -126,8 +126,18 @@ class Crawler {
 		$baseUri = new Uri(trim($baseUri, '/'));
 		$this->baseUri = $baseUri;
 		$this->crawleSingleUri($baseUri, $this->maximumDepth);
+		$this->sortProcessedUris();
 
-		return $this->processedUri;
+		return $this->processedUris;
+	}
+
+	/**
+	 * @param string $uri
+	 * @return UriDefinition
+	 */
+	public function getProcessedUri($uri) {
+		$key = $this->uriService->getUriKey($uri);
+		return Arrays::getValueByPath($this->processedUris, $key);
 	}
 
 	/**
@@ -175,7 +185,7 @@ class Crawler {
 					continue;
 				}
 				$processor = $this->getProcessor($propertyName, $propertyConfiguration);
-				$result = $processor->process($uri, $content);
+				$result = $processor->process($uri, $content, $this);
 				if (is_array($result)) {
 					$this->setProcessedUriProperties($uri, $result);
 				} else {
@@ -191,6 +201,19 @@ class Crawler {
 			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
 			$this->systemLogger->logException($exception);
 		}
+	}
+
+	/**
+	 * Create a tree
+	 */
+	protected function sortProcessedUris() {
+		uasort($this->processedUris, function (UriDefinition $a, UriDefinition $b) {
+			if ($a->getProperty('external_link') === $b->getProperty('external_link')) {
+				return strnatcmp($a->getProperty('current_uri'), $b->getProperty('current_uri'));
+			} else {
+				return ($a->getProperty('external_link') < $b->getProperty('external_link')) ? -1 : 1;
+			}
+		});
 	}
 
 	/**
@@ -250,7 +273,7 @@ class Crawler {
 				$nodeLink = $this->uriService->normalizeUri($this->baseUri, $node->attr('href'));
 				$nodeKey = $this->uriService->getUriKey($nodeLink);
 
-				if (!isset($this->processedUri[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
+				if (!isset($this->processedUris[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
 					$currentLinks[$nodeKey]['original_urls'] = $nodeLink;
 					$currentLinks[$nodeKey]['links_text'] = $nodeText;
 
@@ -293,10 +316,10 @@ class Crawler {
 	 * @param Uri $uri
 	 */
 	protected function scheduleUriCrawling(Uri $uri) {
-		$this->generatePageId($uri);
 		$this->setProcessedUriProperties($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
+			'depth' => $this->getUriDepth($uri),
 			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
 			'current_uri' => (string)$uri,
 		));
@@ -304,10 +327,11 @@ class Crawler {
 
 	/**
 	 * @param Uri $uri
-	 * @todo improve to support hierarchy
+	 * @return integer
 	 */
-	protected function generatePageId(Uri $uri) {
-		$this->setProcessedUriProperty($uri, 'id', count($this->processedUri) + 1);
+	protected function getUriDepth(Uri $uri) {
+		$uriParts = explode('//', (string)$uri);
+		return count(explode('/', $uriParts[1])) - 1;
 	}
 
 	/**
@@ -324,7 +348,7 @@ class Crawler {
 	 * @return boolean
 	 */
 	protected function checkIfCrawlable(Uri $uri) {
-		if (isset($this->processedUri[(string)$uri])) {
+		if (isset($this->processedUris[(string)$uri])) {
 			$this->incrementFrequency($uri);
 			return FALSE;
 		}
@@ -354,11 +378,11 @@ class Crawler {
 	 */
 	protected function setProcessedUriProperty($uri, $propertyName, $propertyValue) {
 		$key = $this->uriService->getUriKey($uri);
-		if (!isset($this->processedUri[$key])) {
-			$this->processedUri[$key] = new UriDefinition();
+		if (!isset($this->processedUris[$key])) {
+			$this->processedUris[$key] = new UriDefinition();
 		}
 		/** @var UriDefinition $uriDefinition */
-		$uriDefinition = $this->processedUri[$key];
+		$uriDefinition = $this->processedUris[$key];
 		$uriDefinition->setProperty($propertyName, $propertyValue);
 
 		return $this;
@@ -371,11 +395,11 @@ class Crawler {
 	 */
 	protected function getProcessedUriProperty($uri, $propertyName) {
 		$key = $this->uriService->getUriKey($uri);
-		if (!isset($this->processedUri[$key])) {
+		if (!isset($this->processedUris[$key])) {
 			return NULL;
 		}
 		/** @var UriDefinition $uriDefinition */
-		$uriDefinition = $this->processedUri[$key];
+		$uriDefinition = $this->processedUris[$key];
 
 		return $uriDefinition->getProperty($propertyName);
 	}

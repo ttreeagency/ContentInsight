@@ -7,6 +7,7 @@ namespace Ttree\ContentInsight\CrawlerProcessor;
  *                                                                        */
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
+use Ttree\ContentInsight\Service\Crawler;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -19,9 +20,10 @@ class MetaKeywordsProcessor implements ProcessorInterface {
 	/**
 	 * @param string $uri
 	 * @param DomCrawler $content
+	 * @param Crawler $crawler
 	 * @return string
 	 */
-	public function process($uri, DomCrawler $content) {
+	public function process($uri, DomCrawler $content, Crawler $crawler) {
 		$keywords = NULL;
 		try {
 			$keywords = $content->filterXPath('html/head/meta[@name="meta_keywords"]/@content')->text();

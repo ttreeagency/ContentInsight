@@ -33,8 +33,6 @@ Ttree:
             reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
             reportPrefix: 'content-inventory-report'
             properties:
-              'id':
-                label: 'ID'
               'page_title':
                 label: 'Page Title'
               'navigation_title':

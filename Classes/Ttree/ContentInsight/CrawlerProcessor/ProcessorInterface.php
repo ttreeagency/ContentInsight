@@ -7,7 +7,7 @@ namespace Ttree\ContentInsight\CrawlerProcessor;
  *                                                                        */
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
-use Symfony\Component\DomCrawler\Crawler;
+use Ttree\ContentInsight\Service\Crawler;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -19,8 +19,9 @@ interface ProcessorInterface {
 
 	/**
 	 * @param string $uri
-	 * @param Crawler $content
+	 * @param DomCrawler $content
+	 * @param Crawler $crawler
 	 * @return mixed
 	 */
-	public function process($uri, Crawler $content);
+	public function process($uri, DomCrawler $content, Crawler $crawler);
 }
