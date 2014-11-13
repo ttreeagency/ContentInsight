@@ -43,9 +43,6 @@ class UriDefinition {
 	 * @return mixed
 	 */
 	public function getProperty($propertyName) {
-		if (!isset($this->properties[$propertyName])) {
-			return NULL;
-		}
-		return $this->properties[$propertyName];
+		return Arrays::getValueByPath($this->properties, $propertyName);
 	}
 }
