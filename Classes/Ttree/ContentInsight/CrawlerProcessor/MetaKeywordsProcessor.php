@@ -1,5 +1,5 @@
 <?php
-namespace Ttree\ContentInsight\Service\CrawlerProcessor;
+namespace Ttree\ContentInsight\CrawlerProcessor;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Ttree.ContentInsight".  *
@@ -14,7 +14,7 @@ use TYPO3\Flow\Annotations as Flow;
  *
  * @Flow\Scope("singleton")
  */
-class MetaDescriptionProcessor implements ProcessorInterface {
+class MetaKeywordsProcessor implements ProcessorInterface {
 
 	/**
 	 * @param string $uri
@@ -22,14 +22,14 @@ class MetaDescriptionProcessor implements ProcessorInterface {
 	 * @return string
 	 */
 	public function process($uri, DomCrawler $content) {
-		$description = NULL;
+		$keywords = NULL;
 		try {
-			$description = $content->filterXPath('html/head/meta[@name="description"]/@content')->text();
+			$keywords = $content->filterXPath('html/head/meta[@name="meta_keywords"]/@content')->text();
 		} catch (\InvalidArgumentException $exception) {
 
 		}
 
-		return $description;
+		return $keywords;
 	}
 
 

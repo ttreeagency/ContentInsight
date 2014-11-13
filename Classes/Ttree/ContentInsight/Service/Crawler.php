@@ -7,9 +7,9 @@ namespace Ttree\ContentInsight\Service;
  *                                                                        */
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
+use Ttree\ContentInsight\CrawlerProcessor\ProcessorInterface;
 use Ttree\ContentInsight\Domain\Model\PresetDefinition;
 use Ttree\ContentInsight\Domain\Model\UriDefinition;
-use Ttree\ContentInsight\Service\CrawlerProcessor\ProcessorInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\CurlEngineException;
 use TYPO3\Flow\Http\Uri;
@@ -161,8 +161,11 @@ class Crawler {
 
 			$content = new DomCrawler($response->getContent());
 
-			foreach ($this->currentPreset->getProperties() as $propertyName) {
-				$processor = $this->getProcessorByPropertyName($propertyName);
+			foreach ($this->currentPreset->getProperties() as $propertyName => $propertyConfiguration) {
+				if (!isset($propertyConfiguration['enabled']) || $propertyConfiguration['enabled'] !== TRUE) {
+					continue;
+				}
+				$processor = $this->getProcessor($propertyName, $propertyConfiguration);
 				$result = $processor->process($uri, $content);
 				if (is_array($result)) {
 					$this->setProcessedUriProperties($uri, $result);
@@ -183,15 +186,20 @@ class Crawler {
 
 	/**
 	 * @param string $propertyName
+	 * @param array $propertyConfiguration
 	 * @return ProcessorInterface
 	 * @throws \TYPO3\Flow\Object\Exception\UnknownObjectException
 	 */
-	protected function getProcessorByPropertyName($propertyName) {
-		$processorClassName = sprintf('Ttree\ContentInsight\Service\CrawlerProcessor\%sProcessor', str_replace(' ', '', ucwords(str_replace('_', ' ', trim($propertyName)))));
+	protected function getProcessor($propertyName, array $propertyConfiguration) {
+		if (isset($propertyConfiguration['class']) && is_string($propertyConfiguration['class'])) {
+			$processorClassName = $propertyConfiguration['class'];
+		} else {
+			$processorClassName = sprintf('Ttree\ContentInsight\CrawlerProcessor\%sProcessor', str_replace(' ', '', ucwords(str_replace('_', ' ', trim($propertyName)))));
+		}
 		/** @var ProcessorInterface $processor */
 		$processor = $this->objectManager->get($processorClassName);
 		if (!$processor instanceof ProcessorInterface) {
-			throw new \InvalidArgumentException('Processor must implement ProcessorInterface', 1415749045);
+			throw new \InvalidArgumentException(sprintf('Processor "%s" must implement ProcessorInterface', $processorClassName), 1415749045);
 		}
 
 		return $processor;
@@ -287,6 +295,7 @@ class Crawler {
 
 	/**
 	 * @param Uri $uri
+	 * @todo improve to support hierarchy
 	 */
 	protected function generatePageId(Uri $uri) {
 		$this->setProcessedUriProperty($uri, 'id', count($this->processedUri) + 1);

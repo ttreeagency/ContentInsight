@@ -1,5 +1,5 @@
 <?php
-namespace Ttree\ContentInsight\Service\CrawlerProcessor;
+namespace Ttree\ContentInsight\CrawlerProcessor;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Ttree.ContentInsight".  *

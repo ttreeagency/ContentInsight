@@ -7,12 +7,21 @@ Ttree:
       # Limit website crawling depth
       maximumDepth: 1000
     presets:
+      # Base preset, merged with all custom preset
       '*':
         properties:
-          - 'page_title'
-          - 'navigation_title'
+          'page_title':
+            # You can use your own ProcessorImplementation
+            # class: 'Ttree\ContentInsight\Service\CrawlerProcessor\PageTitleProcessor'
+            enabled: TRUE
+          'navigation_title':
+            enabled: TRUE
+      # Default preset
       'default':
         properties:
-          - 'meta_description'
-          - 'meta_keywords'
-          - 'first_level_header'
+          'meta_description':
+            enabled: TRUE
+          'meta_keywords':
+            enabled: TRUE
+          'first_level_header':
+            enabled: TRUE

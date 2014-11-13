@@ -1,5 +1,5 @@
 <?php
-namespace Ttree\ContentInsight\Service\CrawlerProcessor;
+namespace Ttree\ContentInsight\CrawlerProcessor;
 
 /*                                                                        *
  * This script belongs to the TYPO3 Flow package "Ttree.ContentInsight".  *
@@ -7,6 +7,7 @@ namespace Ttree\ContentInsight\Service\CrawlerProcessor;
  *                                                                        */
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
+use Symfony\Component\DomCrawler\Crawler;
 use TYPO3\Flow\Annotations as Flow;
 
 /**
@@ -14,23 +15,12 @@ use TYPO3\Flow\Annotations as Flow;
  *
  * @Flow\Scope("singleton")
  */
-class NavigationTitleProcessor implements ProcessorInterface {
+interface ProcessorInterface {
 
 	/**
 	 * @param string $uri
-	 * @param DomCrawler $content
-	 * @return string
+	 * @param Crawler $content
+	 * @return mixed
 	 */
-	public function process($uri, DomCrawler $content) {
-		$title = NULL;
-		try {
-			$title = 'TODO';
-		} catch (\InvalidArgumentException $exception) {
-
-		}
-
-		return $title;
-	}
-
-
+	public function process($uri, Crawler $content);
 }
