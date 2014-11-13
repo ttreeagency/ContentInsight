@@ -33,9 +33,11 @@ class ContentInventorCommandController extends CommandController {
 		try {
 			$uri = new Uri(trim($baseUrl, '/'));
 			$this->outputLine(sprintf('Extract content from "%s%s"', $uri->getHost(), $uri->getPath()));
-			$inventoryReport = $this->crawlerService->crawleFromBaseUri($baseUrl);
-			var_dump($inventoryReport);
-			$this->outputLine('Page count: %d', array(count($inventoryReport)));
+			$inventory = $this->crawlerService
+				->setPreset('default')
+				->crawleFromBaseUri($baseUrl);
+			var_dump($inventory);
+			$this->outputLine('Page count: %d', array(count($inventory)));
 		} catch (\InvalidArgumentException $exception) {
 			$this->outputLine('Something break ...');
 			$this->outputLine(get_class($exception));

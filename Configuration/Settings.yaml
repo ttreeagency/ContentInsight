@@ -11,6 +11,8 @@ Ttree:
         properties:
           - 'page_title'
           - 'navigation_title'
+      'default':
+        properties:
           - 'meta_description'
           - 'meta_keywords'
           - 'first_level_header'
