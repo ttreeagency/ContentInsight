@@ -1,9 +1,12 @@
 Ttree Content Insight
 =====================
 
-This TYPO3 Flow package provider a CLI tools to extract Content Inventory CSV from existing website. This package is
-under develpment and considered alpha. Use it at your own risk. If your are intersted to contribute to the project,
-your are really welcome.
+[![Build Status](https://travis-ci.org/ttreeagency/Ttree.ContentInsight.png?branch=master)](https://travis-ci.org/ttreeagency/Ttree.ContentInsight) [![Total Downloads](https://poser.pugx.org/ttree/contentinsight/downloads.png)](https://packagist.org/packages/ttree/contentinsight)
+
+
+This TYPO3 Flow package provider a CLI tools to extract Content Inventory CSV from existing website. 
+
+This package is under develpment and considered beta.
 
 Features
 --------
