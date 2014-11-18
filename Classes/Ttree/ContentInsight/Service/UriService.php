@@ -50,7 +50,7 @@ class UriService {
 			$uri = $baseUri->getScheme() . '://' . $baseUri->getHost() . $uri;
 		}
 
-		return $uri;
+		return trim($uri);
 	}
 
 	/**

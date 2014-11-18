@@ -271,8 +271,11 @@ class Crawler {
 			$nodeLink = NULL;
 			try {
 				$nodeText = trim($node->text());
-				$nodeLink = $node->attr('href');
+				$nodeLink = trim($node->attr('href'));
 				$nodeLink = $this->uriService->normalizeUri($this->baseUri, $nodeLink);
+				if ($nodeLink === '') {
+					return;
+				}
 				$nodeKey = $this->uriService->getUriKey($nodeLink);
 
 				if (!isset($this->processedUris[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
@@ -320,12 +323,16 @@ class Crawler {
 	 * @param Uri $uri
 	 */
 	protected function scheduleUriCrawling(Uri $uri) {
+		$uriString = trim($uri);
+		if ($uriString === '') {
+			return;
+		}
 		$this->setProcessedUriProperties($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
 			'depth' => $this->getUriDepth($uri),
 			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
-			'current_uri' => (string)$uri,
+			'current_uri' => $uriString,
 		));
 	}
 
