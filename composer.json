@@ -4,8 +4,7 @@
 	"description": "Tools to extract basic content inventory information from an existing website",
 	"require": {
 		"typo3/flow": "*",
-		"symfony/dom-crawler": "*",
-		"symfony/css-selector": "*"
+		"symfony/dom-crawler": "*"
 	},
 	"autoload": {
 		"psr-0": {

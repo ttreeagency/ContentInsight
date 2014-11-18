@@ -25,13 +25,17 @@ class FirstLevelHeaderProcessor implements ProcessorInterface {
 	 */
 	public function process($uri, DomCrawler $content, Crawler $crawler) {
 		$result = array();
-		$headers = $content->filter('h1');
+		$headers = $content->filterXPath('descendant-or-self::h1');
 		$firstLevelHeaderCounter = $headers->count();
 		$result['first_level_header_count'] = $firstLevelHeaderCounter;
 		if ($firstLevelHeaderCounter > 0) {
 			$contents = array();
 			$headers->each(function (DomCrawler $node, $i) use (&$contents) {
-				$contents[$i] = trim($node->text());
+				try {
+					$contents[$i] = trim($node->text());
+				} catch (\InvalidArgumentException $exception) {
+					$contents[$i] = NULL;
+				}
 			});
 			$result['first_level_header_content'] = implode($contents, '; ');
 		}
