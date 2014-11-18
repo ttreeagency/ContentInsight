@@ -268,9 +268,11 @@ class Crawler {
 	protected function extractChildLinks(Uri $uri, DomCrawler $content) {
 		$currentLinks = array();
 		$content->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
+			$nodeLink = NULL;
 			try {
 				$nodeText = trim($node->text());
-				$nodeLink = $this->uriService->normalizeUri($this->baseUri, $node->attr('href'));
+				$nodeLink = $node->attr('href');
+				$nodeLink = $this->uriService->normalizeUri($this->baseUri, $nodeLink);
 				$nodeKey = $this->uriService->getUriKey($nodeLink);
 
 				if (!isset($this->processedUris[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
@@ -298,7 +300,9 @@ class Crawler {
 					$currentLinks[$nodeKey]['frequency'] = isset($currentLinks[$nodeKey]['frequency']) ? $currentLinks[$nodeKey]['frequency']++ : 1;
 				}
 			} catch (\InvalidArgumentException $exception) {
-				$this->systemLogger->logException($exception);
+				$nodeKey = $this->uriService->getUriKey($nodeLink);
+				$currentLinks[$nodeKey]['dont_visit'] = TRUE;
+				$this->log($nodeLink, sprintf('URI "%s" skipped, %s', $nodeLink, $exception->getMessage()));
 			}
 
 		});
@@ -348,7 +352,8 @@ class Crawler {
 	 * @return boolean
 	 */
 	protected function checkIfCrawlable(Uri $uri) {
-		if (isset($this->processedUris[(string)$uri])) {
+		$key = $this->uriService->getUriKey($uri);
+		if (isset($this->processedUris[$key])) {
 			$this->incrementFrequency($uri);
 			return FALSE;
 		}

@@ -58,6 +58,10 @@ class UriService {
 	 * @return boolean
 	 */
 	public function isValidUri($uri) {
+		$uri = trim($uri);
+		if ($uri === '' || $uri === '#') {
+			return FALSE;
+		}
 		foreach ($this->invalidUriPatterns as $patternConfiguration) {
 			if (!isset($patternConfiguration['pattern'])) {
 				throw new \InvalidArgumentException('Missing pattern', 1415878090);
