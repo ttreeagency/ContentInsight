@@ -13,15 +13,17 @@ cat <<EOF > composer.json
 	},
 	"require": {
 		"ttree/contentinsight": "dev-${TRAVIS_BRANCH}#${TRAVIS_COMMIT}",
-		"doctrine/migrations": "dev-master",
-		"typo3/flow": "${FLOW_VERSION}"
+		"doctrine/migrations": "@dev",
+		"typo3/flow": "${FLOW_VERSION}",
+		"typo3/eel": "${FLOW_VERSION}",
+		"typo3/fluid": "${FLOW_VERSION}",
+		"typo3/party": "${FLOW_VERSION}"
 	},
 	"require-dev": {
 		"typo3/buildessentials": "${FLOW_VERSION}",
-		"mikey179/vfsstream": "1.2.*",
-		"phpunit/phpunit": "4.0.*",
-		"typo3-ci/typo3flow": "dev-master",
-		"flowpack/behat": "dev-master"
+		"mikey179/vfsstream": "1.4.*",
+		"phpunit/phpunit": "4.3.*",
+		"typo3-ci/typo3flow": "dev-master"
 	},
 	"scripts": {
 		"post-update-cmd": "TYPO3\\\\Flow\\\\Composer\\\\InstallerScripts::postUpdateAndInstall",
