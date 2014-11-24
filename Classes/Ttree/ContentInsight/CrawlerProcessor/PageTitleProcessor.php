@@ -28,10 +28,10 @@ class PageTitleProcessor implements ProcessorInterface {
 			$title = trim($content->filterXPath('html/head/title')->text());
 			$uriDefinition = $crawler->getProcessedUri($uri);
 			if (!$uriDefinition->getProperty('external_link')) {
-				$depth = $uriDefinition->getProperty('depth') - 1 ?: 0;
+				$depth = $uriDefinition->getProperty('depth');
 				if ($depth > 0) {
 					$prefix = '';
-					for ($i = 0; $i <= $depth; $i++) {
+					for ($i = 0; $i < $depth; $i++) {
 						$prefix .= "\t";
 					}
 					$title = sprintf('%s%s', $prefix, $title);

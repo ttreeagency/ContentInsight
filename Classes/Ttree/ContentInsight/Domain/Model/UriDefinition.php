@@ -94,4 +94,26 @@ class UriDefinition {
 	public function getUri() {
 		return $this->uri;
 	}
+
+	/**
+	 * @param Uri $baseUri
+	 * @return integer
+	 */
+	public function getUriDepth(Uri $baseUri = NULL) {
+		$depth = $this->getProperty('depth');
+		if ($depth === NULL) {
+			$baseUriDepth = $baseUri ? count(explode('/', trim($baseUri->getPath(), '/'))) : 0;
+			$depth = count(explode('/', trim($this->getUri()->getPath(), '/'))) - $baseUriDepth;
+			$this->setProperty('depth', $depth);
+		}
+		return $depth;
+	}
+
+	/**
+	 * @param Uri $uri
+	 * @return boolean
+	 */
+	public function isChildrenOf(Uri $uri) {
+		return strpos((string)$this->getUri(),(string)$uri) !== FALSE;
+	}
 }

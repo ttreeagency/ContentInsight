@@ -69,7 +69,7 @@ class Crawler {
 	 * @Flow\Inject(setting="crawling.maximumDepth")
 	 * @var integer
 	 */
-	protected $maximumDepth;
+	protected $maximumCrawlingDepth;
 
 	/**
 	 * @Flow\Inject(setting="presets")
@@ -125,7 +125,7 @@ class Crawler {
 	public function crawleFromBaseUri($baseUri) {
 		$baseUri = new Uri(trim($baseUri, '/'));
 		$this->baseUri = $baseUri;
-		$this->crawleSingleUri($baseUri, $this->maximumDepth);
+		$this->crawleSingleUri($baseUri, $this->maximumCrawlingDepth);
 		$this->sortProcessedUris();
 
 		return $this->processedUris;
@@ -142,10 +142,10 @@ class Crawler {
 
 	/**
 	 * @param Uri $uri
-	 * @param integer $depth
+	 * @param integer $crawlingDepth
 	 * @return void
 	 */
-	public function crawleSingleUri(Uri $uri, $depth) {
+	public function crawleSingleUri(Uri $uri, $crawlingDepth = 0) {
 		if (!$this->checkIfCrawlable($uri)) {
 			return;
 		}
@@ -160,7 +160,7 @@ class Crawler {
 			return;
 		}
 
-		if (strpos((string)$uri, (string)$this->baseUri) === FALSE) {
+		if ($uri->isChildrenOf($this->baseUri) === FALSE) {
 			$this->log($uri, sprintf('URI "%s" skipped, not a children of the base URI', $uri));
 			$this->unscheduleUriCrawling($uri->getUri());
 			return;
@@ -204,7 +204,7 @@ class Crawler {
 			$uri->setProperty('visited', TRUE);
 			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
 
-			$this->processChildLinks($uri, $content, $depth);
+			$this->processChildLinks($uri, $content, $crawlingDepth);
 		} catch (CurlEngineException $exception) {
 			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
 			$this->systemLogger->logException($exception);
@@ -248,13 +248,13 @@ class Crawler {
 	/**
 	 * @param UriDefinition $uri
 	 * @param DomCrawler $content
-	 * @param integer $depth
+	 * @param integer $crawlingDepth
 	 */
-	protected function processChildLinks(UriDefinition $uri, DomCrawler $content, $depth) {
+	protected function processChildLinks(UriDefinition $uri, DomCrawler $content, $crawlingDepth) {
 		foreach ($this->extractChildLinks($uri, $content) as $uriDefinition) {
 			/** @var UriDefinition $uriDefinition */
 			try {
-				if ($depth == 0) {
+				if ($crawlingDepth == 0) {
 					$this->systemLogger->log(sprintf('Inventory exit, maximum nested level', $uri));
 					return;
 				}
@@ -262,7 +262,7 @@ class Crawler {
 					continue;
 				}
 				$childLinkUri = $uriDefinition->getUri();
-				$this->crawleSingleUri($childLinkUri, $depth - 1);
+				$this->crawleSingleUri($childLinkUri, $crawlingDepth - 1);
 			} catch (\InvalidArgumentException $exception) {
 				$this->systemLogger->logException($exception);
 			}
@@ -340,13 +340,15 @@ class Crawler {
 			return;
 		}
 		$uriKey = $this->uriService->getUriKey($uri);
-		$this->processedUris[$uriKey] = new UriDefinition($uri, array(
+		$uriDefinition = new UriDefinition($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
-			'depth' => $this->getUriDepth($uri),
 			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
 			'current_uri' => $uriString,
 		));
+		$uriDefinition->getUriDepth($this->baseUri);
+
+		$this->processedUris[$uriKey] = $uriDefinition;
 
 		return $this->processedUris[$uriKey];
 	}
@@ -363,19 +365,7 @@ class Crawler {
 		unset($this->processedUris[$uriKey]);
 	}
 
-	/**
-	 * @param Uri $uri
-	 * @return integer
-	 */
-	protected function getUriDepth(Uri $uri) {
-		if (strpos((string)$uri, (string)$this->baseUri) > 0) {
-			$baseUriDepth = $this->getUriDepth($this->baseUri) + 1;
-		} else {
-			$baseUriDepth = 1;
-		}
-		$uriParts = explode('//', (string)$uri);
-		return count(explode('/', $uriParts[1])) - $baseUriDepth;
-	}
+
 
 	/**
 	 * @param Uri $uri
