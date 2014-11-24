@@ -6,7 +6,7 @@ Ttree Content Insight
 
 This TYPO3 Flow package provider a CLI tools to extract Content Inventory CSV from existing website. 
 
-This package is under develpment and considered beta.
+This package is under develpment and considered beta. This package require Flow 2.3.
 
 Features
 --------
