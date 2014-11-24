@@ -384,6 +384,7 @@ class Crawler {
 		}
 
 		if (!$this->uriService->isValidUri($uri)) {
+			$this->unscheduleUriCrawling($uri);
 			return FALSE;
 		}
 
