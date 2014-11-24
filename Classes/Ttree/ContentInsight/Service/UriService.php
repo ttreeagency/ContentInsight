@@ -54,19 +54,18 @@ class UriService {
 	}
 
 	/**
-	 * @param string $uri
+	 * @param Uri|string $uri
 	 * @return boolean
 	 */
 	public function isValidUri($uri) {
-		$uri = trim($uri);
-		if ($uri === '' || $uri === '#') {
-			return FALSE;
+		if (!$uri instanceof Uri) {
+			$uri = new Uri($uri);
 		}
 		foreach ($this->invalidUriPatterns as $patternConfiguration) {
 			if (!isset($patternConfiguration['pattern'])) {
 				throw new \InvalidArgumentException('Missing pattern', 1415878090);
 			}
-			if (preg_match($patternConfiguration['pattern'], (string)$uri)) {
+			if (preg_match($patternConfiguration['pattern'], (string)$uri) === 1) {
 				if (isset($patternConfiguration['message']) && is_string($patternConfiguration['message'])) {
 					$this->systemLogger->log(sprintf('URI "%s" skipped, %s', $uri, $patternConfiguration['message']));
 				}

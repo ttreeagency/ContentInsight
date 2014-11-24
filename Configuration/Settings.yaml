@@ -17,7 +17,7 @@ Ttree:
           'mailto':
             pattern: '@^mailto\:.*@'
           'anchor':
-            pattern: '@^#.*@'
+            pattern: '@#.*@'
             message: 'Link to anchor'
         properties:
           'page_title':
