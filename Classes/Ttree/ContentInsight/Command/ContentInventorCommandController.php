@@ -39,7 +39,7 @@ class ContentInventorCommandController extends CommandController {
 		$this->outputLine();
 		$this->outputLine('Content Inventory extraction tools ...');
 		try {
-			$uri = new Uri(trim($baseUrl, '/'));
+			$uri = new Uri($baseUrl);
 			$this->outputLine(sprintf('Extract content from "%s%s"', $uri->getHost(), $uri->getPath()));
 			$inventory = $this->crawlerService
 				->setPreset($preset)

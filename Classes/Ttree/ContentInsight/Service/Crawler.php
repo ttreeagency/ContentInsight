@@ -169,12 +169,14 @@ class Crawler {
 			return;
 		}
 
-		$response = $this->downloader->get($uri);
-		$uri->setProperty('status_code', $response->getStatusCode());
+		// Follow redirect only for the Base URL
+		$response = $this->downloader->get($uri->getUri(), (string)$this->baseUri === (string)$uri);
+		$statusCode = $response->getStatusCode();
+		$uri->setProperty('status_code', $statusCode);
 
 		try {
-			if ($response->getStatusCode() !== 200) {
-				$this->log($uri, sprintf('URI "%s" skipped, invalid status code', $uri));
+			if ($statusCode !== 200) {
+				$this->log($uri, sprintf('URI "%s" skipped, non 20x status code (%s)', $uri, $statusCode));
 				return;
 			}
 

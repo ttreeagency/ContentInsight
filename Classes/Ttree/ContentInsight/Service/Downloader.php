@@ -34,21 +34,14 @@ class Downloader {
 
 	/**
 	 * @param string $uri
+	 * @param boolean $followRedirects
 	 * @return Response
 	 * @throws InfiniteRedirectionException
 	 */
-	public function get($uri) {
-		$uri = $this->normalizeLink($uri);
+	public function get($uri, $followRedirects = FALSE) {
+		$this->browser->setFollowRedirects($followRedirects);
 		$response = $this->browser->request($uri);
 
 		return $response;
-	}
-
-	/**
-	 * @param string $uri
-	 * @return mixed
-	 */
-	protected function normalizeLink($uri) {
-		return preg_replace('@#.*$@', '', $uri);
 	}
 }
