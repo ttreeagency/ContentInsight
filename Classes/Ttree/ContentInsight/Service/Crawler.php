@@ -150,20 +150,24 @@ class Crawler {
 			return;
 		}
 
-		$this->scheduleUriCrawling($uri);
+		$uri = $this->scheduleUriCrawling($uri);
 
-		if ($this->getProcessedUriProperty($uri, 'external_link') === TRUE) {
-			$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
+		if ($uri->getProperty('external_link') === TRUE) {
+			if ($this->currentPreset->getInventoryConfiguration()->skipExternalUris()) {
+				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
+				$this->unscheduleUriCrawling($uri->getUri());
+			}
+			return;
+		}
+
+		if (strpos((string)$uri, (string)$this->baseUri) === FALSE) {
+			$this->log($uri, sprintf('URI "%s" skipped, not a children of the base URI', $uri));
+			$this->unscheduleUriCrawling($uri->getUri());
 			return;
 		}
 
 		$response = $this->downloader->get($uri);
-		$this->setProcessedUriProperty($uri, 'status_code', $response->getStatusCode());
-
-		if (strpos((string)$uri, (string)$this->baseUri) === FALSE) {
-			$this->log($uri, sprintf('URI "%s" skipped, not a children of the base URI', $uri));
-			return;
-		}
+		$uri->setProperty('status_code', $response->getStatusCode());
 
 		try {
 			if ($response->getStatusCode() !== 200) {
@@ -172,7 +176,7 @@ class Crawler {
 			}
 
 			$contentType = $response->getHeader('Content-Type');
-			$this->setProcessedUriProperty($uri, 'content_type', $contentType);
+			$uri->setProperty('content_type', $contentType);
 			if (strpos($contentType, 'text/html') === FALSE) {
 				$this->log($uri, sprintf('URI "%s" skipped, invalid content type', $uri));
 				return;
@@ -185,15 +189,19 @@ class Crawler {
 					continue;
 				}
 				$processor = $this->getProcessor($propertyName, $propertyConfiguration);
-				$result = $processor->process($uri, $content, $this);
+				try {
+					$result = $processor->process($uri, $content, $this);
+				} catch (\Exception $exception) {
+					$result = sprintf('Processor "%s" failed with message: %s/%s', get_class($processor), $exception->getCode(), $exception->getMessage());
+				}
 				if (is_array($result)) {
-					$this->setProcessedUriProperties($uri, $result);
+					$uri->setProperties($result);
 				} else {
-					$this->setProcessedUriProperty($uri, $propertyName, $result);
+					$uri->setProperty($propertyName, $result);
 				}
 			}
 
-			$this->setProcessedUriProperty($uri, 'visited', TRUE);
+			$uri->setProperty('visited', TRUE);
 			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
 
 			$this->processChildLinks($uri, $content, $depth);
@@ -238,21 +246,22 @@ class Crawler {
 	}
 
 	/**
-	 * @param Uri $uri
+	 * @param UriDefinition $uri
 	 * @param DomCrawler $content
 	 * @param integer $depth
 	 */
-	protected function processChildLinks(Uri $uri, DomCrawler $content, $depth) {
-		foreach ($this->extractChildLinks($uri, $content) as $childLink) {
+	protected function processChildLinks(UriDefinition $uri, DomCrawler $content, $depth) {
+		foreach ($this->extractChildLinks($uri, $content) as $uriDefinition) {
+			/** @var UriDefinition $uriDefinition */
 			try {
 				if ($depth == 0) {
 					$this->systemLogger->log(sprintf('Inventory exit, maximum nested level', $uri));
 					return;
 				}
-				if (isset($childLink['dont_visit']) && $childLink['dont_visit'] === TRUE) {
+				if ($uriDefinition->getProperty('dont_visit') === TRUE) {
 					continue;
 				}
-				$childLinkUri = new Uri($childLink['original_urls']);
+				$childLinkUri = $uriDefinition->getUri();
 				$this->crawleSingleUri($childLinkUri, $depth - 1);
 			} catch (\InvalidArgumentException $exception) {
 				$this->systemLogger->logException($exception);
@@ -261,11 +270,11 @@ class Crawler {
 	}
 
 	/**
-	 * @param Uri $uri
+	 * @param UriDefinition $uri
 	 * @param DomCrawler $content
 	 * @return array
 	 */
-	protected function extractChildLinks(Uri $uri, DomCrawler $content) {
+	protected function extractChildLinks(UriDefinition $uri, DomCrawler $content) {
 		$currentLinks = array();
 		$content->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
 			$nodeLink = NULL;
@@ -279,33 +288,35 @@ class Crawler {
 				$nodeKey = $this->uriService->getUriKey($nodeLink);
 
 				if (!isset($this->processedUris[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
-					$currentLinks[$nodeKey]['original_urls'] = $nodeLink;
-					$currentLinks[$nodeKey]['links_text'] = $nodeText;
-
 					$nodeUri = new Uri($nodeLink);
-					$crawlable = $this->checkIfCrawlable($nodeUri);
+					$nodeUriDefinition = new UriDefinition($nodeUri, array(
+						'links_text' => $nodeText
+					));
+					$crawlable = $this->checkIfCrawlable($nodeUriDefinition->getUri());
 					if ($crawlable && !preg_match('@^http(s)?@', $nodeLink)) {
-						$currentLinks[$nodeKey]['absolute_url'] = $this->baseUri . $nodeLink;
+						$nodeUriDefinition->setProperty('absolute_url', $this->baseUri . $nodeLink);
 					} else {
-						$currentLinks[$nodeKey]['absolute_url'] = $nodeLink;
+						$nodeUriDefinition->setProperty('absolute_url', $nodeLink);
 					}
 
 					if (!$crawlable) {
-						$currentLinks[$nodeKey]['dont_visit'] = TRUE;
-						$currentLinks[$nodeKey]['external_link'] = FALSE;
-					} elseif ($this->uriService->checkIfExternal($this->baseUri, $currentLinks[$nodeKey]['absolute_url'])) {
-						$currentLinks[$nodeKey]['external_link'] = TRUE;
+						$nodeUriDefinition->setProperty('dont_visit', TRUE);
+						$nodeUriDefinition->setProperty('external_link', FALSE);
+					} elseif ($this->uriService->checkIfExternal($this->baseUri, $nodeUriDefinition->getProperty('absolute_url'))) {
+						$nodeUriDefinition->setProperty('external_link', TRUE);
 					} else {
-						$currentLinks[$nodeKey]['external_link'] = FALSE;
+						$nodeUriDefinition->setProperty('external_link', FALSE);
 					}
-					$currentLinks[$nodeKey]['visited'] = FALSE;
+					$nodeUriDefinition->setProperty('visited', FALSE);
+					$nodeUriDefinition->incrementFrequency();
 
-					$currentLinks[$nodeKey]['frequency'] = isset($currentLinks[$nodeKey]['frequency']) ? $currentLinks[$nodeKey]['frequency']++ : 1;
+					$currentLinks[$nodeKey] = $nodeUriDefinition;
 				}
 			} catch (\InvalidArgumentException $exception) {
-				$nodeKey = $this->uriService->getUriKey($nodeLink);
-				$currentLinks[$nodeKey]['dont_visit'] = TRUE;
-				$this->log($nodeLink, sprintf('URI "%s" skipped, %s', $nodeLink, $exception->getMessage()));
+				if (isset($nodeUriDefinition) && $nodeUriDefinition instanceof UriDefinition) {
+					$nodeUriDefinition->setProperty('dont_visit', TRUE);
+					$this->log($nodeUriDefinition, sprintf('URI "%s" skipped, %s', $nodeLink, $exception->getMessage()));
+				}
 			}
 
 		});
@@ -321,19 +332,35 @@ class Crawler {
 
 	/**
 	 * @param Uri $uri
+	 * @return UriDefinition
 	 */
 	protected function scheduleUriCrawling(Uri $uri) {
 		$uriString = trim($uri);
 		if ($uriString === '') {
 			return;
 		}
-		$this->setProcessedUriProperties($uri, array(
+		$uriKey = $this->uriService->getUriKey($uri);
+		$this->processedUris[$uriKey] = new UriDefinition($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
 			'depth' => $this->getUriDepth($uri),
 			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
 			'current_uri' => $uriString,
 		));
+
+		return $this->processedUris[$uriKey];
+	}
+
+	/**
+	 * @param Uri $uri
+	 */
+	protected function unscheduleUriCrawling(Uri $uri) {
+		$uriString = trim($uri);
+		if ($uriString === '') {
+			return;
+		}
+		$uriKey = $this->uriService->getUriKey($uri);
+		unset($this->processedUris[$uriKey]);
 	}
 
 	/**
@@ -341,17 +368,13 @@ class Crawler {
 	 * @return integer
 	 */
 	protected function getUriDepth(Uri $uri) {
+		if (strpos((string)$uri, (string)$this->baseUri) > 0) {
+			$baseUriDepth = $this->getUriDepth($this->baseUri) + 1;
+		} else {
+			$baseUriDepth = 1;
+		}
 		$uriParts = explode('//', (string)$uri);
-		return count(explode('/', $uriParts[1])) - 1;
-	}
-
-	/**
-	 * @param string $uri
-	 * @return void
-	 */
-	protected function incrementFrequency($uri) {
-		$frequency = $this->getProcessedUriProperty($uri, 'frequency');
-		$this->setProcessedUriProperty($uri, 'frequency', $frequency + 1);
+		return count(explode('/', $uriParts[1])) - $baseUriDepth;
 	}
 
 	/**
@@ -361,7 +384,9 @@ class Crawler {
 	protected function checkIfCrawlable(Uri $uri) {
 		$key = $this->uriService->getUriKey($uri);
 		if (isset($this->processedUris[$key])) {
-			$this->incrementFrequency($uri);
+			/** @var UriDefinition $uriDefinition */
+			$uriDefinition = $this->processedUris[$key];
+			$uriDefinition->incrementFrequency();
 			return FALSE;
 		}
 
@@ -373,55 +398,11 @@ class Crawler {
 	}
 
 	/**
-	 * @param string $uri
-	 * @param array $properties
-	 */
-	protected function setProcessedUriProperties($uri, array $properties) {
-		foreach ($properties as $property => $value) {
-			$this->setProcessedUriProperty($uri, $property, $value);
-		}
-	}
-
-	/**
-	 * @param string $uri
-	 * @param string $propertyName
-	 * @param string $propertyValue
-	 * @return $this
-	 */
-	protected function setProcessedUriProperty($uri, $propertyName, $propertyValue) {
-		$key = $this->uriService->getUriKey($uri);
-		if (!isset($this->processedUris[$key])) {
-			$this->processedUris[$key] = new UriDefinition();
-		}
-		/** @var UriDefinition $uriDefinition */
-		$uriDefinition = $this->processedUris[$key];
-		$uriDefinition->setProperty($propertyName, $propertyValue);
-
-		return $this;
-	}
-
-	/**
-	 * @param string $uri
-	 * @param string $propertyName
-	 * @return mixed
-	 */
-	protected function getProcessedUriProperty($uri, $propertyName) {
-		$key = $this->uriService->getUriKey($uri);
-		if (!isset($this->processedUris[$key])) {
-			return NULL;
-		}
-		/** @var UriDefinition $uriDefinition */
-		$uriDefinition = $this->processedUris[$key];
-
-		return $uriDefinition->getProperty($propertyName);
-	}
-
-	/**
-	 * @param string $uri
+	 * @param UriDefinition $uri
 	 * @param string $message
 	 */
-	protected function log($uri, $message) {
-		$this->setProcessedUriProperty($uri, 'remark', $message);
+	protected function log(UriDefinition $uri, $message) {
+		$uri->setProperty('remark', $message);
 		$this->systemLogger->log($message);
 	}
 }

@@ -9,6 +9,8 @@ Ttree:
     presets:
       # Base preset, merged with all custom preset
       '*':
+        inventoryConfiguration:
+          skipExternalUris: FALSE
         invalidUriPatterns:
           'javascript':
             pattern: '@^javascript\:void\(0\)$@'
@@ -33,15 +35,18 @@ Ttree:
             reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
             reportPrefix: 'content-inventory-report'
             properties:
+              'visited':
+                label: 'Visited'
+                postProcessor: 'Boolean'
+              'external_link':
+                label: 'External Link'
+                postProcessor: 'Boolean'
               'page_title':
                 label: 'Page Title'
               'navigation_title':
                 label: 'Navigation Title'
               'status_code':
                 label: 'Status Code'
-              'external_link':
-                label: 'External Link'
-                postProcessor: 'Boolean'
               'current_uri':
                 label: 'URL'
               'meta_description':

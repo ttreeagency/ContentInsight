@@ -35,6 +35,14 @@ class PresetDefinition {
 	}
 
 	/**
+	 * @return InventoryConfigurationDefinition
+	 */
+	public function getInventoryConfiguration() {
+		$inventoryConfiguration = Arrays::getValueByPath($this->preset, 'inventoryConfiguration');
+		return new InventoryConfigurationDefinition($inventoryConfiguration);
+	}
+
+	/**
 	 * @return array
 	 */
 	public function getPropertyNames() {
