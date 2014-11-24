@@ -10,6 +10,7 @@ use Ttree\ContentInsight\ReportBuilder\ReportBuilderInterface;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Object\ObjectManager;
 use TYPO3\Flow\Utility\Arrays;
+use TYPO3\Flow\Utility\Files;
 
 /**
  * Report Configuration Definition
@@ -61,7 +62,7 @@ class ReportConfigurationDefinition {
 		if (trim($reportPath) || !is_writable($reportPath)) {
 			throw new \InvalidArgumentException('Empty report path or unable to create the directory', 1415749035);
 		}
-		@mkdir($reportPath, 0777, TRUE);
+		Files::createDirectoryRecursively($reportPath);
 
 		return $reportPath;
 	}
