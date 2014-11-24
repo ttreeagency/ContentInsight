@@ -34,7 +34,7 @@ class UriDefinition {
 	/**
 	 * @return string
 	 */
-	function __toString() {
+	public function __toString() {
 		return (string)$this->uri;
 	}
 
@@ -83,7 +83,7 @@ class UriDefinition {
 		if ($frequency === NULL) {
 			$this->setProperty('frequency', 1);
 		} else {
-			$this->setProperty('frequency', ++$frequency);
+			$this->setProperty('frequency', $frequency + 1);
 		}
 		return $this;
 	}
@@ -114,6 +114,6 @@ class UriDefinition {
 	 * @return boolean
 	 */
 	public function isChildrenOf(Uri $uri) {
-		return strpos((string)$this->getUri(),(string)$uri) !== FALSE;
+		return strpos((string)$this->getUri(), (string)$uri) !== FALSE;
 	}
 }
