@@ -36,13 +36,6 @@ class ReportConfigurationDefinition {
 	}
 
 	/**
-	 * @return string
-	 */
-	public function getReportPath() {
-		return Arrays::getValueByPath($this->configuration, 'reportPath') ?: NULL;
-	}
-
-	/**
 	 * @return ReportBuilderInterface
 	 */
 	public function getReportBuilder() {
@@ -57,9 +50,9 @@ class ReportConfigurationDefinition {
 	/**
 	 * @return string
 	 */
-	public function reportPath() {
+	public function getReportPath() {
 		$reportPath = Arrays::getValueByPath($this->configuration, 'reportPath');
-		if (trim($reportPath) || !is_writable($reportPath)) {
+		if (trim($reportPath) === '') {
 			throw new \InvalidArgumentException('Empty report path or unable to create the directory', 1415749035);
 		}
 		Files::createDirectoryRecursively($reportPath);
