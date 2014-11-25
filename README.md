@@ -6,7 +6,7 @@ Ttree Content Insight
 
 This TYPO3 Flow package provider a CLI tools to extract Content Inventory CSV from existing website. 
 
-This package is under develpment and considered beta. This package require Flow 2.3.
+This package is under development and considered beta. This package require Flow 2.3.
 
 Features
 --------
@@ -83,7 +83,7 @@ Ttree:
   ContentInsight:
     presets:
       'custom':
-		reportConfigurations:
+        reportConfigurations:
           'csv':
             enabled: TRUE
             renderType: 'Csv'
@@ -117,8 +117,44 @@ Ttree:
 
 The keys in the ``properties`` section must match the key produced by the ``CrawlerProcessor`` object.
 
+The position of each column could be specified with the following syntax : ``position: '<position-string>'``
+The ``<position-string>`` supports one of the following syntax:
+
+```
+    start (<weight>)
+    end (<weight>)
+    before <key> (<weight>)
+    after <key> (<weight>)
+    <numerical-order>
+```
+
+### Example
+
+```yaml
+Ttree:
+  ContentInsight:
+    presets:
+      'custom':
+        reportConfigurations:
+          'csv':
+            enabled: TRUE
+            renderType: 'Csv'
+            renderTypeOptions:
+              displayColumnHeaders: TRUE
+            reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
+            reportPrefix: 'content-inventory-report'
+            properties:
+              'id':
+                label: 'ID'
+                position: '<position-string>',
+              'page_title':
+                label: 'Page Title'
+                position:'<position-string>'
+```
+
 For a single crawling preset you can register multiple reports if required. Foreach property you can register a post 
 processor if you need to manipulate the property in the report, see ``BooleanPostProcessor`` for a basic example.
+
 
 How to skip specific URI ?
 --------------------------

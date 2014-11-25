@@ -37,6 +37,7 @@ Ttree:
             properties:
               'visited':
                 label: 'Visited'
+                position: 'after external_link'
                 postProcessor: 'Boolean'
               'external_link':
                 label: 'External Link'
@@ -59,6 +60,7 @@ Ttree:
                 label: 'Main Header Content (H1)'
               'remark':
                 label: 'Crawling Remark'
+                position: 'end'
         properties:
           'meta_description':
             enabled: TRUE
