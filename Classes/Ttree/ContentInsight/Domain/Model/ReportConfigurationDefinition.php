@@ -11,6 +11,7 @@ use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Object\ObjectManager;
 use TYPO3\Flow\Utility\Arrays;
 use TYPO3\Flow\Utility\Files;
+use TYPO3\Flow\Utility\PositionalArraySorter;
 
 /**
  * Report Configuration Definition
@@ -80,7 +81,8 @@ class ReportConfigurationDefinition {
 	 */
 	public function getProperties() {
 		$properties = array();
-		foreach (Arrays::getValueByPath($this->configuration, 'properties') ?: array() as $propertyName => $propertyConfiguration ) {
+		$sorter = new PositionalArraySorter(Arrays::getValueByPath($this->configuration, 'properties') ?: array());
+		foreach ($sorter->toArray() as $propertyName => $propertyConfiguration ) {
 			$properties[$propertyName] = new ReportPropertyDefinition($propertyConfiguration);
 		}
 
