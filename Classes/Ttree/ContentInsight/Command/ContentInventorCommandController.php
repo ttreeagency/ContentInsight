@@ -43,7 +43,7 @@ class ContentInventorCommandController extends CommandController {
 			$this->outputLine(sprintf('Extract content from "%s%s"', $uri->getHost(), $uri->getPath()));
 			$inventory = $this->crawlerService
 				->setPreset($preset)
-				->crawleFromBaseUri($baseUrl);
+				->crawlFromBaseUri($baseUrl);
 			$this->reportBuilder->build($inventory, $this->crawlerService->getCurrentPreset());
 			$this->outputLine('Page count: %d', array(count($inventory)));
 		} catch (\Exception $exception) {
