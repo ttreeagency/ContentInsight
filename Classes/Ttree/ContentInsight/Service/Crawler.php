@@ -152,13 +152,13 @@ class Crawler {
 
 		$uri = $this->scheduleUriCrawling($uri);
 
-		if ($uri->getProperty('external_link') === TRUE) {
+		if ($uri->getProperty('externalLink') === TRUE) {
 			if ($this->currentPreset->getInventoryConfiguration()->skipExternalUris()) {
 				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
 				$this->unscheduleUriCrawling($uri->getUri());
 			} else {
 				$response = $this->downloader->get($uri);
-				$uri->setProperty('status_code', $response->getStatusCode());
+				$uri->setProperty('statusCode', $response->getStatusCode());
 			}
 			return;
 		}
@@ -172,7 +172,7 @@ class Crawler {
 		// Follow redirect only for the Base URL
 		$response = $this->downloader->get($uri->getUri(), (string)$this->baseUri === (string)$uri);
 		$statusCode = $response->getStatusCode();
-		$uri->setProperty('status_code', $statusCode);
+		$uri->setProperty('statusCode', $statusCode);
 
 		try {
 			if ($statusCode !== 200) {
@@ -181,7 +181,7 @@ class Crawler {
 			}
 
 			$contentType = $response->getHeader('Content-Type');
-			$uri->setProperty('content_type', $contentType);
+			$uri->setProperty('contentType', $contentType);
 			if (strpos($contentType, 'text/html') === FALSE) {
 				$this->log($uri, sprintf('URI "%s" skipped, invalid content type', $uri));
 				return;
@@ -221,10 +221,10 @@ class Crawler {
 	 */
 	protected function sortProcessedUris() {
 		uasort($this->processedUris, function (UriDefinition $a, UriDefinition $b) {
-			if ($a->getProperty('external_link') === $b->getProperty('external_link')) {
-				return strnatcmp($a->getProperty('current_uri'), $b->getProperty('current_uri'));
+			if ($a->getProperty('externalLink') === $b->getProperty('externalLink')) {
+				return strnatcmp($a->getProperty('currentUri'), $b->getProperty('currentUri'));
 			} else {
-				return ($a->getProperty('external_link') < $b->getProperty('external_link')) ? -1 : 1;
+				return ($a->getProperty('externalLink') < $b->getProperty('externalLink')) ? -1 : 1;
 			}
 		});
 	}
@@ -263,7 +263,7 @@ class Crawler {
 					$this->systemLogger->log(sprintf('Inventory exit, maximum nested level', $uri));
 					return;
 				}
-				if ($uriDefinition->getProperty('dont_visit') === TRUE) {
+				if ($uriDefinition->getProperty('doNotVisit') === TRUE) {
 					continue;
 				}
 				$childLinkUri = $uriDefinition->getUri();
@@ -295,22 +295,22 @@ class Crawler {
 				if (!isset($this->processedUris[$nodeKey]) && !isset($currentLinks[$nodeKey])) {
 					$nodeUri = new Uri($nodeLink);
 					$nodeUriDefinition = new UriDefinition($nodeUri, array(
-						'links_text' => $nodeText
+						'linkText' => $nodeText
 					));
 					$crawlable = $this->checkIfCrawlable($nodeUriDefinition->getUri());
 					if ($crawlable && !preg_match('@^http(s)?@', $nodeLink)) {
-						$nodeUriDefinition->setProperty('absolute_url', $this->baseUri . $nodeLink);
+						$nodeUriDefinition->setProperty('absoluteUrl', $this->baseUri . $nodeLink);
 					} else {
-						$nodeUriDefinition->setProperty('absolute_url', $nodeLink);
+						$nodeUriDefinition->setProperty('absoluteUrl', $nodeLink);
 					}
 
 					if (!$crawlable) {
-						$nodeUriDefinition->setProperty('dont_visit', TRUE);
-						$nodeUriDefinition->setProperty('external_link', FALSE);
-					} elseif ($this->uriService->checkIfExternal($this->baseUri, $nodeUriDefinition->getProperty('absolute_url'))) {
-						$nodeUriDefinition->setProperty('external_link', TRUE);
+						$nodeUriDefinition->setProperty('doNotVisit', TRUE);
+						$nodeUriDefinition->setProperty('externalLink', FALSE);
+					} elseif ($this->uriService->checkIfExternal($this->baseUri, $nodeUriDefinition->getProperty('absoluteUrl'))) {
+						$nodeUriDefinition->setProperty('externalLink', TRUE);
 					} else {
-						$nodeUriDefinition->setProperty('external_link', FALSE);
+						$nodeUriDefinition->setProperty('externalLink', FALSE);
 					}
 					$nodeUriDefinition->setProperty('visited', FALSE);
 					$nodeUriDefinition->incrementFrequency();
@@ -319,7 +319,7 @@ class Crawler {
 				}
 			} catch (\InvalidArgumentException $exception) {
 				if (isset($nodeUriDefinition) && $nodeUriDefinition instanceof UriDefinition) {
-					$nodeUriDefinition->setProperty('dont_visit', TRUE);
+					$nodeUriDefinition->setProperty('doNotVisit', TRUE);
 					$this->log($nodeUriDefinition, sprintf('URI "%s" skipped, %s', $nodeLink, $exception->getMessage()));
 				}
 			}
@@ -328,7 +328,7 @@ class Crawler {
 
 		if (isset($currentLinks[(string)$uri])) {
 			$nodeKey = md5((string)$uri);
-			$currentLinks[$nodeKey]['dont_visit'] = TRUE;
+			$currentLinks[$nodeKey]['doNotVisit'] = TRUE;
 			$currentLinks[$nodeKey]['visited'] = TRUE;
 		}
 
@@ -348,8 +348,8 @@ class Crawler {
 		$uriDefinition = new UriDefinition($uri, array(
 			'visited' => FALSE,
 			'frequency' => 1,
-			'external_link' => $this->uriService->checkIfExternal($this->baseUri, $uri),
-			'current_uri' => $uriString,
+			'externalLink' => $this->uriService->checkIfExternal($this->baseUri, $uri),
+			'currentUri' => $uriString,
 		));
 		$uriDefinition->getUriDepth($this->baseUri);
 

@@ -23,7 +23,7 @@ class PageTitleProcessorTest extends UnitTestCase {
 		$uri = $this->getMockBuilder('TYPO3\Flow\Http\Uri')->disableOriginalConstructor()->getMock();
 
 		$uriDefinition = $this->getMockBuilder('Ttree\ContentInsight\Domain\Model\UriDefinition')->disableOriginalConstructor()->getMock();
-		$uriDefinition->expects($this->at(0))->method('getProperty')->with('external_link')->willReturn(FALSE);
+		$uriDefinition->expects($this->at(0))->method('getProperty')->with('externalLink')->willReturn(FALSE);
 		$uriDefinition->expects($this->at(1))->method('getProperty')->with('depth')->willReturn(0);
 
 		$crawler = $this->getMockBuilder('Ttree\ContentInsight\Service\Crawler')->getMock();
@@ -45,7 +45,7 @@ class PageTitleProcessorTest extends UnitTestCase {
 		$uri = $this->getMockBuilder('TYPO3\Flow\Http\Uri')->disableOriginalConstructor()->getMock();
 
 		$uriDefinition = $this->getMockBuilder('Ttree\ContentInsight\Domain\Model\UriDefinition')->disableOriginalConstructor()->getMock();
-		$uriDefinition->expects($this->at(0))->method('getProperty')->with('external_link')->willReturn(FALSE);
+		$uriDefinition->expects($this->at(0))->method('getProperty')->with('externalLink')->willReturn(FALSE);
 		$uriDefinition->expects($this->at(1))->method('getProperty')->with('depth')->willReturn(2);
 
 		$crawler = $this->getMockBuilder('Ttree\ContentInsight\Service\Crawler')->getMock();
