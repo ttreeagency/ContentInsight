@@ -116,4 +116,11 @@ class UriDefinition {
 	public function isChildrenOf(Uri $uri) {
 		return strpos((string)$this->getUri(), (string)$uri) !== FALSE;
 	}
+
+	/**
+	 * @return void
+	 */
+	public function markHasVisited() {
+		$this->setProperty('visited', TRUE);
+	}
 }
