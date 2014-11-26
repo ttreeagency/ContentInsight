@@ -29,8 +29,8 @@ class FirstLevelHeaderProcessorTest extends UnitTestCase {
 		$content->expects($this->once())->method('count')->willReturn(2);
 
 		$this->assertSame(array(
-			'first_level_header_count' => 2,
-			'first_level_header_content' => ''
+			'firstLevelHeaderCount' => 2,
+			'firstLevelHeaderContent' => ''
 		), $processor->process($uri, $content, $crawler));
 	}
 
