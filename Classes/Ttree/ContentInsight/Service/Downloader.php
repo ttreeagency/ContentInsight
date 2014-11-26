@@ -11,6 +11,7 @@ use TYPO3\Flow\Http\Client\Browser;
 use TYPO3\Flow\Http\Client\CurlEngine;
 use TYPO3\Flow\Http\Client\InfiniteRedirectionException;
 use TYPO3\Flow\Http\Response;
+use TYPO3\Flow\Http\Uri;
 
 /**
  * Web Page Downloader
@@ -33,12 +34,12 @@ class Downloader {
 	}
 
 	/**
-	 * @param string $uri
+	 * @param Uri $uri
 	 * @param boolean $followRedirects
 	 * @return Response
 	 * @throws InfiniteRedirectionException
 	 */
-	public function get($uri, $followRedirects = FALSE) {
+	public function get(Uri $uri, $followRedirects = FALSE) {
 		$this->browser->setFollowRedirects($followRedirects);
 		$response = $this->browser->request($uri);
 
