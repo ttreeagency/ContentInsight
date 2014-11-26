@@ -157,7 +157,7 @@ class Crawler {
 				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
 				$this->unscheduleUriCrawling($uri->getUri());
 			} else {
-				$response = $this->downloader->get($uri);
+				$response = $this->downloader->get($uri->getUri());
 				$uri->setProperty('status_code', $response->getStatusCode());
 			}
 			return;
