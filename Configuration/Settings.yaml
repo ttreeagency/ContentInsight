@@ -19,6 +19,9 @@ Ttree:
           'anchor':
             pattern: '@#.*@'
             message: 'Link to anchor'
+          'images':
+            pattern: '@\.(jpe?g|png|gif)$@'
+            message: 'Link to image'
         properties:
           'page_title':
             enabled: TRUE
