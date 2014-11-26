@@ -27,7 +27,7 @@ class PageTitleProcessor implements ProcessorInterface {
 		try {
 			$title = trim($content->filterXPath('html/head/title')->text());
 			$uriDefinition = $crawler->getProcessedUri($uri);
-			if (!$uriDefinition->getProperty('external_link')) {
+			if (!$uriDefinition->getProperty('externalLink')) {
 				$depth = $uriDefinition->getProperty('depth');
 				if ($depth > 0) {
 					$prefix = '';

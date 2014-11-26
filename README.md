@@ -44,9 +44,9 @@ Ttree:
     presets:
       '*':
         properties:
-          'page_title':
+          'pageTitle':
             enabled: TRUE
-          'navigation_title':
+          'navigationTitle':
             enabled: TRUE
 ```
 
@@ -63,13 +63,13 @@ Ttree:
     presets:
       'custom':
         properties:
-          'page_title':
+          'pageTitle':
             class: 'Your\Package\CrawlerProcessor\PageTitleProcessor'
-          'meta_description':
+          'metaDescription':
             enabled: TRUE
-          'meta_keywords':
+          'metaKeywords':
             enabled: TRUE
-          'first_level_header':
+          'firstLevelHeader':
             enabled: TRUE
 ```
 
@@ -94,22 +94,22 @@ Ttree:
             properties:
               'id':
                 label: 'ID'
-              'page_title':
+              'pageTitle':
                 label: 'Page Title'
-              'navigation_title':
+              'navigationTitle':
                 label: 'Navigation Title'
-              'external_link':
+              'externalLink':
                 label: 'External Link'
                 postProcessor: 'Boolean'
-              'current_uri':
+              'currentUri':
                 label: 'URL'
-              'meta_description':
+              'metaDescription':
                 label: 'Meta Description'
-              'meta_keywords':
+              'metaKeywords':
                 label: 'Meta Keywords'
-              'first_level_header_count':
+              'firstLevelHeaderCount':
                 label: 'Main Header Count (H1)'
-              'first_level_header_content':
+              'firstLevelHeaderContent':
                 label: 'Main Header Content (H1)'
               'remark':
                 label: 'Crawling Remark'
@@ -147,7 +147,7 @@ Ttree:
               'id':
                 label: 'ID'
                 position: '<position-string>',
-              'page_title':
+              'pageTitle':
                 label: 'Page Title'
                 position:'<position-string>'
 ```

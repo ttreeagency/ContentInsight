@@ -23,9 +23,9 @@ Ttree:
             pattern: '@\.(jpe?g|png|gif)$@'
             message: 'Link to image'
         properties:
-          'page_title':
+          'pageTitle':
             enabled: TRUE
-          'navigation_title':
+          'navigationTitle':
             enabled: TRUE
       # Default preset
       'default':
@@ -40,34 +40,34 @@ Ttree:
             properties:
               'visited':
                 label: 'Visited'
-                position: 'after external_link'
+                position: 'after externalLink'
                 postProcessor: 'Boolean'
-              'external_link':
+              'externalLink':
                 label: 'External Link'
                 postProcessor: 'Boolean'
-              'page_title':
+              'pageTitle':
                 label: 'Page Title'
-              'navigation_title':
+              'navigationTitle':
                 label: 'Navigation Title'
-              'status_code':
+              'statusCode':
                 label: 'Status Code'
-              'current_uri':
+              'currentUri':
                 label: 'URL'
-              'meta_description':
+              'metaDescription':
                 label: 'Meta Description'
-              'meta_keywords':
+              'metaKeywords':
                 label: 'Meta Keywords'
-              'first_level_header_count':
+              'firstLevelHeaderCount':
                 label: 'Main Header Count (H1)'
-              'first_level_header_content':
+              'firstLevelHeaderContent':
                 label: 'Main Header Content (H1)'
               'remark':
                 label: 'Crawling Remark'
                 position: 'end'
         properties:
-          'meta_description':
+          'metaDescription':
             enabled: TRUE
-          'meta_keywords':
+          'metaKeywords':
             enabled: TRUE
-          'first_level_header':
+          'firstLevelHeader':
             enabled: TRUE

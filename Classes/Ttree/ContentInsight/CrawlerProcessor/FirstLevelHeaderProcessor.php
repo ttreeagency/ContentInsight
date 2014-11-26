@@ -27,7 +27,7 @@ class FirstLevelHeaderProcessor implements ProcessorInterface {
 		$result = array();
 		$headers = $content->filterXPath('descendant-or-self::h1');
 		$firstLevelHeaderCounter = $headers->count();
-		$result['first_level_header_count'] = $firstLevelHeaderCounter;
+		$result['firstLevelHeaderCount'] = $firstLevelHeaderCounter;
 		if ($firstLevelHeaderCounter > 0) {
 			$contents = array();
 			$headers->each(function (DomCrawler $node, $i) use (&$contents) {
@@ -37,7 +37,7 @@ class FirstLevelHeaderProcessor implements ProcessorInterface {
 					$contents[$i] = NULL;
 				}
 			});
-			$result['first_level_header_content'] = implode($contents, '; ');
+			$result['firstLevelHeaderContent'] = implode($contents, '; ');
 		}
 
 		return $result;
