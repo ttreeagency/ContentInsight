@@ -122,10 +122,10 @@ class Crawler {
 	 * @param string $baseUri
 	 * @return array
 	 */
-	public function crawleFromBaseUri($baseUri) {
+	public function crawlFromBaseUri($baseUri) {
 		$baseUri = new Uri(trim($baseUri, '/'));
 		$this->baseUri = $baseUri;
-		$this->crawleSingleUri($baseUri, $this->maximumCrawlingDepth);
+		$this->crawlSingleUri($baseUri, $this->maximumCrawlingDepth);
 		$this->sortProcessedUris();
 
 		return $this->processedUris;
@@ -145,7 +145,7 @@ class Crawler {
 	 * @param integer $crawlingDepth
 	 * @return void
 	 */
-	public function crawleSingleUri(Uri $uri, $crawlingDepth = 0) {
+	public function crawlSingleUri(Uri $uri, $crawlingDepth = 0) {
 		if (!$this->checkIfCrawlable($uri)) {
 			return;
 		}
@@ -267,7 +267,7 @@ class Crawler {
 					continue;
 				}
 				$childLinkUri = $uriDefinition->getUri();
-				$this->crawleSingleUri($childLinkUri, $crawlingDepth - 1);
+				$this->crawlSingleUri($childLinkUri, $crawlingDepth - 1);
 			} catch (\InvalidArgumentException $exception) {
 				$this->systemLogger->logException($exception);
 			}
