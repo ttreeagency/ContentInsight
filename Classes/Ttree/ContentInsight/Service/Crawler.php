@@ -122,10 +122,10 @@ class Crawler {
 	 * @param string $baseUri
 	 * @return array
 	 */
-	public function crawlFromBaseUri($baseUri) {
+	public function crawleFromBaseUri($baseUri) {
 		$baseUri = new Uri(trim($baseUri, '/'));
 		$this->baseUri = $baseUri;
-		$this->crawlSingleUri($baseUri, $this->maximumCrawlingDepth);
+		$this->crawleSingleUri($baseUri, $this->maximumCrawlingDepth);
 		$this->sortProcessedUris();
 
 		return $this->processedUris;
@@ -145,7 +145,7 @@ class Crawler {
 	 * @param integer $crawlingDepth
 	 * @return void
 	 */
-	public function crawlSingleUri(Uri $uri, $crawlingDepth = 0) {
+	public function crawleSingleUri(Uri $uri, $crawlingDepth = 0) {
 		if (!$this->checkIfCrawlable($uri)) {
 			return;
 		}
@@ -157,8 +157,9 @@ class Crawler {
 				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
 				$this->unscheduleUriCrawling($uri->getUri());
 			} else {
-				$response = $this->downloader->get($uri->getUri());
+				$response = $this->downloader->get($uri->getUri(), TRUE);
 				$uri->setProperty('statusCode', $response->getStatusCode());
+				$uri->markHasVisited();
 			}
 			return;
 		}
@@ -175,6 +176,7 @@ class Crawler {
 		$uri->setProperty('statusCode', $statusCode);
 
 		try {
+			$this->log($uri, sprintf('Process "%s" ...', $uri, $statusCode));
 			if ($statusCode !== 200) {
 				$this->log($uri, sprintf('URI "%s" skipped, non 20x status code (%s)', $uri, $statusCode));
 				return;
@@ -186,6 +188,9 @@ class Crawler {
 				$this->log($uri, sprintf('URI "%s" skipped, invalid content type', $uri));
 				return;
 			}
+
+			$content = $response->getContent();
+			$uri->setProperty('content_hash', md5($content));
 
 			$content = new DomCrawler($response->getContent());
 
@@ -206,7 +211,7 @@ class Crawler {
 				}
 			}
 
-			$uri->setProperty('visited', TRUE);
+			$uri->markHasVisited();
 			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
 
 			$this->processChildLinks($uri, $content, $crawlingDepth);
@@ -267,7 +272,7 @@ class Crawler {
 					continue;
 				}
 				$childLinkUri = $uriDefinition->getUri();
-				$this->crawlSingleUri($childLinkUri, $crawlingDepth - 1);
+				$this->crawleSingleUri($childLinkUri, $crawlingDepth - 1);
 			} catch (\InvalidArgumentException $exception) {
 				$this->systemLogger->logException($exception);
 			}
