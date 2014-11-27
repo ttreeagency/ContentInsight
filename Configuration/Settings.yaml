@@ -12,25 +12,25 @@ Ttree:
         inventoryConfiguration:
           skipExternalUris: FALSE
         invalidUriPatterns:
-          'javascript':
+          javascript:
             pattern: '@^javascript\:void\(0\)$@'
-          'mailto':
+          mailto:
             pattern: '@^mailto\:.*@'
-          'anchor':
+          anchor:
             pattern: '@#.*@'
             message: 'Link to anchor'
-          'images':
+          images:
             pattern: '@\.(jpe?g|png|gif)$@'
             message: 'Link to image'
         properties:
-          'pageTitle':
+          pageTitle:
             enabled: TRUE
-          'navigationTitle':
+          navigationTitle:
             enabled: TRUE
       # Default preset
       'default':
         reportConfigurations:
-          'csv':
+          csv:
             enabled: TRUE
             renderType: 'Csv'
             renderTypeOptions:
@@ -38,36 +38,36 @@ Ttree:
             reportPath: '%FLOW_PATH_DATA%Reports/Ttree.ContentInsight'
             reportPrefix: 'content-inventory-report'
             properties:
-              'visited':
+              visited:
                 label: 'Visited'
                 position: 'after externalLink'
                 postProcessor: 'Boolean'
-              'externalLink':
+              externalLink:
                 label: 'External Link'
                 postProcessor: 'Boolean'
-              'pageTitle':
+              pageTitle:
                 label: 'Page Title'
-              'navigationTitle':
+              navigationTitle:
                 label: 'Navigation Title'
-              'statusCode':
+              statusCode:
                 label: 'Status Code'
-              'currentUri':
+              currentUri:
                 label: 'URL'
-              'metaDescription':
+              metaDescription:
                 label: 'Meta Description'
-              'metaKeywords':
+              metaKeywords:
                 label: 'Meta Keywords'
-              'firstLevelHeaderCount':
+              firstLevelHeaderCount:
                 label: 'Main Header Count (H1)'
-              'firstLevelHeaderContent':
+              firstLevelHeaderContent:
                 label: 'Main Header Content (H1)'
-              'remark':
+              remark:
                 label: 'Crawling Remark'
                 position: 'end'
         properties:
-          'metaDescription':
+          metaDescription:
             enabled: TRUE
-          'metaKeywords':
+          metaKeywords:
             enabled: TRUE
-          'firstLevelHeader':
+          firstLevelHeader:
             enabled: TRUE
