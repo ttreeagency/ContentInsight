@@ -12,6 +12,7 @@ use Ttree\ContentInsight\Domain\Model\PresetDefinition;
 use Ttree\ContentInsight\Domain\Model\UriDefinition;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\CurlEngineException;
+use TYPO3\Flow\Http\Client\InfiniteRedirectionException;
 use TYPO3\Flow\Http\Uri;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManager;
@@ -157,9 +158,14 @@ class Crawler {
 				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
 				$this->unscheduleUriCrawling($uri->getUri());
 			} else {
-				$response = $this->downloader->get($uri->getUri(), TRUE);
-				$uri->setProperty('statusCode', $response->getStatusCode());
-				$uri->markHasVisited();
+				try {
+					$response = $this->downloader->get($uri->getUri(), TRUE);
+					$uri->setProperty('statusCode', $response->getStatusCode());
+					$uri->markHasVisited();
+				} catch (InfiniteRedirectionException $exception) {
+					$this->log($uri, 'Infinite Redirection');
+					$uri->markHasVisited();
+				}
 			}
 			return;
 		}
@@ -170,12 +176,12 @@ class Crawler {
 			return;
 		}
 
-		// Follow redirect only for the Base URL
-		$response = $this->downloader->get($uri->getUri(), (string)$this->baseUri === (string)$uri);
-		$statusCode = $response->getStatusCode();
-		$uri->setProperty('statusCode', $statusCode);
-
 		try {
+			// Follow redirect only for the Base URL
+			$response = $this->downloader->get($uri->getUri(), (string)$this->baseUri === (string)$uri);
+			$statusCode = $response->getStatusCode();
+			$uri->setProperty('statusCode', $statusCode);
+
 			$this->log($uri, sprintf('Process "%s" ...', $uri, $statusCode));
 			if ($statusCode !== 200) {
 				$this->log($uri, sprintf('URI "%s" skipped, non 20x status code (%s)', $uri, $statusCode));
@@ -215,6 +221,9 @@ class Crawler {
 			$this->systemLogger->log(sprintf('URI "%s" visited', $uri));
 
 			$this->processChildLinks($uri, $content, $crawlingDepth);
+		} catch (InfiniteRedirectionException $exception) {
+			$this->log($uri, 'Infinite Redirection');
+			$uri->markHasVisited();
 		} catch (CurlEngineException $exception) {
 			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
 			$this->systemLogger->logException($exception);
