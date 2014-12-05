@@ -47,10 +47,12 @@ Ttree:
                 postProcessor: 'Boolean'
               pageTitle:
                 label: 'Page Title'
-              navigationTitle:
-                label: 'Navigation Title'
               statusCode:
                 label: 'Status Code'
+              redirectLocation:
+                label: 'Redirect Location'
+              redirectStatusCode:
+                label: 'Redirect Status Code'
               currentUri:
                 label: 'URL'
               metaDescription:
