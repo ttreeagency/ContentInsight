@@ -155,24 +155,12 @@ class Crawler {
 
 		$uri = $this->scheduleUriCrawling($uri);
 
-		if ($uri->getProperty('externalLink') === TRUE) {
-			if ($this->currentPreset->getInventoryConfiguration()->skipExternalUris()) {
-				$this->log($uri, sprintf('URI "%s" skipped, external link', $uri));
-				$this->unscheduleUriCrawling($uri->getUri());
-			} else {
-				try {
-					$response = $this->downloader->get($uri->getUri(), TRUE);
-					$uri->setProperty('statusCode', $response->getStatusCode());
-					$uri->markHasVisited();
-				} catch (InfiniteRedirectionException $exception) {
-					$this->log($uri, 'Infinite Redirection');
-					$uri->markHasVisited();
-				}
-			}
+		if ($uri->getProperty('externalLink') === TRUE && $this->currentPreset->getInventoryConfiguration()->skipExternalUris()) {
+			$this->unscheduleUriCrawling($uri->getUri());
 			return;
 		}
 
-		if ($uri->isChildrenOf($this->baseUri) === FALSE) {
+		if ($uri->getProperty('externalLink') === FALSE && $uri->isChildrenOf($this->baseUri) === FALSE) {
 			$this->log($uri, sprintf('URI "%s" skipped, not a children of the base URI', $uri));
 			$this->unscheduleUriCrawling($uri->getUri());
 			return;
@@ -257,6 +245,9 @@ class Crawler {
 			return FALSE;
 		} elseif (!ResponseUtility::isSuccessful($response)) {
 			$this->log($uri, sprintf('Skipped, non 20x status code (%s)', $statusCode));
+			return FALSE;
+		} elseif ($uri->getProperty('externalLink') === TRUE) {
+			$this->log($uri, sprintf('Skipped, external link', $statusCode));
 			return FALSE;
 		}
 
