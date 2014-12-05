@@ -10,6 +10,7 @@ use Symfony\Component\DomCrawler\Crawler as DomCrawler;
 use Ttree\ContentInsight\Domain\Model\HtmlDocument;
 use Ttree\ContentInsight\Service\Crawler;
 use TYPO3\Flow\Annotations as Flow;
+use TYPO3\Flow\Utility\Unicode\Functions;
 
 /**
  * Website Crawler
@@ -42,7 +43,10 @@ class PageTitleProcessor implements ProcessorInterface {
 			$title = NULL;
 		}
 
-		return $title;
+		return array(
+			'pageTitle' => $title,
+			'pageTitleLength' => Functions::strlen($title)
+		);
 	}
 
 
