@@ -242,11 +242,18 @@ class Crawler {
 		$uri->setProperty('statusCode', $statusCode);
 
 		if (ResponseUtility::isRedirect($response)) {
-			$locationUri = new Uri($response->getHeader('Location'));
-			$rediretResponse = $this->downloader->get($locationUri, TRUE);
-			$this->log($uri, sprintf('Skipped, redirection to "%s" (%s)', $locationUri, $rediretResponse->getStatusCode()));
-			$uri->setProperty('redirectLocation', (string)$locationUri);
-			$uri->setProperty('redirectStatusCode', $statusCode);
+			try {
+				// Browser support Location with or without uppercase
+				$location = $response->getHeader('Location') ?: $response->getHeader('location');
+				$location = $this->uriService->normalizeUri($this->baseUri, $location);
+				$locationUri = new Uri($location);
+				$rediretResponse = $this->downloader->get($locationUri, TRUE);
+				$this->log($uri, sprintf('Skipped, redirection to "%s" (%s)', $locationUri, $rediretResponse->getStatusCode()));
+				$uri->setProperty('redirectLocation', (string)$locationUri);
+				$uri->setProperty('redirectStatusCode', $statusCode);
+			} catch (\InvalidArgumentException $exception) {
+				$this->log($uri, 'Skipped, redirection to unknown location');
+			}
 			return FALSE;
 		} elseif (!ResponseUtility::isSuccessful($response)) {
 			$this->log($uri, sprintf('Skipped, non 20x status code (%s)', $statusCode));
