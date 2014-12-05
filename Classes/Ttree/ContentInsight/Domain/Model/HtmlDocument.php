@@ -32,17 +32,17 @@ class HtmlDocument {
 	 *
 	 * @api
 	 */
-	public function __construct($content = null, $charset = 'UTF-8') {
+	public function __construct($content = NULL, $charset = 'UTF-8') {
 
 		$this->document = new \DOMDocument('1.0', $charset);
-		$this->document->validateOnParse = true;
+		$this->document->validateOnParse = TRUE;
 
 		if (function_exists('mb_convert_encoding') && in_array(strtolower($charset), array_map('strtolower', mb_list_encodings()))) {
 			$content = mb_convert_encoding($content, 'HTML-ENTITIES', $charset);
 		}
 
 		@$this->document->loadHTML($content);
-		$this->document->formatOutput = true;
+		$this->document->formatOutput = TRUE;
 
 		$this->crawler = new Crawler($content);
 	}
