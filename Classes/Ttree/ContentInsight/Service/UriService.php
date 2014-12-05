@@ -47,10 +47,10 @@ class UriService {
 			throw new \InvalidArgumentException('Invalid URI, unable to normalize', 1415749025);
 		}
 		if (!preg_match('@^http(s)?@', $uri)) {
-			$uri = $baseUri->getScheme() . '://' . $baseUri->getHost() . $uri;
+			$uri = sprintf('%s://%s/%s', $baseUri->getScheme(), $baseUri->getHost(), ltrim(trim($uri), '/'));
 		}
 
-		return trim($uri);
+		return rtrim($uri, '/');
 	}
 
 	/**

@@ -39,7 +39,7 @@ class DownloaderCacheAspect {
 	 * @return Response
 	 */
 	public function cacheHttpRequest(JoinPointInterface $joinPoint) {
-		$uri = $joinPoint->getMethodArgument('uri');
+		$uri = rtrim($joinPoint->getMethodArgument('uri'), '/');
 		$cacheKey = md5($uri);
 		if ($this->cache->has($cacheKey)) {
 			$rawHttpResponse = $this->cache->get($cacheKey);
