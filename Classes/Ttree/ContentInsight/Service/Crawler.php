@@ -10,9 +10,11 @@ use Symfony\Component\DomCrawler\Crawler as DomCrawler;
 use Ttree\ContentInsight\CrawlerProcessor\ProcessorInterface;
 use Ttree\ContentInsight\Domain\Model\PresetDefinition;
 use Ttree\ContentInsight\Domain\Model\UriDefinition;
+use Ttree\ContentInsight\Utility\ResponseUtility;
 use TYPO3\Flow\Annotations as Flow;
 use TYPO3\Flow\Http\Client\CurlEngineException;
 use TYPO3\Flow\Http\Client\InfiniteRedirectionException;
+use TYPO3\Flow\Http\Response;
 use TYPO3\Flow\Http\Uri;
 use TYPO3\Flow\Log\SystemLoggerInterface;
 use TYPO3\Flow\Object\ObjectManager;
@@ -179,15 +181,13 @@ class Crawler {
 		try {
 			// Follow redirect only for the Base URL
 			$response = $this->downloader->get($uri->getUri(), (string)$this->baseUri === (string)$uri);
-			$statusCode = $response->getStatusCode();
-			$uri->setProperty('statusCode', $statusCode);
 
-			$this->log($uri, sprintf('Process "%s" ...', $uri, $statusCode));
-			if ($statusCode !== 200) {
-				$this->log($uri, sprintf('URI "%s" skipped, non 20x status code (%s)', $uri, $statusCode));
+			if ($this->canHandleResponse($uri, $response) === FALSE) {
+				$uri->markHasVisited();
 				return;
 			}
 
+			$this->systemLogger->log($uri, sprintf('Process "%s" ...', $uri));
 			$contentType = $response->getHeader('Content-Type');
 			$uri->setProperty('contentType', $contentType);
 			if (strpos($contentType, 'text/html') === FALSE) {
@@ -228,6 +228,32 @@ class Crawler {
 			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
 			$this->systemLogger->logException($exception);
 		}
+	}
+
+	/**
+	 * @param UriDefinition $uri
+	 * @param Response $response
+	 * @return bool
+	 */
+	protected function canHandleResponse(UriDefinition $uri, Response $response) {
+		$continueProcessing = TRUE;
+
+		$statusCode = $response->getStatusCode();
+		$uri->setProperty('statusCode', $statusCode);
+
+		if (ResponseUtility::isRedirect($response)) {
+			$locationUri = new Uri($response->getHeader('Location'));
+			$rediretResponse = $this->downloader->get($locationUri, TRUE);
+			$this->log($uri, sprintf('Skipped, redirection to "%s" (%s)', $locationUri, $rediretResponse->getStatusCode()));
+			$uri->setProperty('redirectLocation', (string)$locationUri);
+			$uri->setProperty('redirectStatusCode', $statusCode);
+			return FALSE;
+		} elseif (!ResponseUtility::isSuccessful($response)) {
+			$this->log($uri, sprintf('Skipped, non 20x status code (%s)', $statusCode));
+			return FALSE;
+		}
+
+		return $continueProcessing;
 	}
 
 	/**
