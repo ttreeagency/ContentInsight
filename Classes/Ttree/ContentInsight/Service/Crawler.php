@@ -225,7 +225,7 @@ class Crawler {
 			$this->log($uri, 'Infinite Redirection');
 			$uri->markHasVisited();
 		} catch (CurlEngineException $exception) {
-			$this->log($uri, sprintf('URI "%s" skipped, curl error', $uri));
+			$this->log($uri, sprintf('URI "%s" skipped, curl error:', $uri, $exception->getMessage()));
 			$this->systemLogger->logException($exception);
 		}
 	}
