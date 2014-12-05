@@ -7,6 +7,7 @@ namespace Ttree\ContentInsight\CrawlerProcessor;
  *                                                                        */
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
+use Ttree\ContentInsight\Domain\Model\HtmlDocument;
 use Ttree\ContentInsight\Service\Crawler;
 use TYPO3\Flow\Annotations as Flow;
 
@@ -19,11 +20,11 @@ class NavigationTitleProcessor implements ProcessorInterface {
 
 	/**
 	 * @param string $uri
-	 * @param DomCrawler $content
+	 * @param HtmlDocument $document
 	 * @param Crawler $crawler
 	 * @return string
 	 */
-	public function process($uri, DomCrawler $content, Crawler $crawler) {
+	public function process($uri, HtmlDocument $document, Crawler $crawler) {
 		try {
 			$title = 'TODO';
 		} catch (\InvalidArgumentException $exception) {

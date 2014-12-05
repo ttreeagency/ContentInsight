@@ -8,6 +8,7 @@ namespace Ttree\ContentInsight\Service;
 
 use Symfony\Component\DomCrawler\Crawler as DomCrawler;
 use Ttree\ContentInsight\CrawlerProcessor\ProcessorInterface;
+use Ttree\ContentInsight\Domain\Model\HtmlDocument;
 use Ttree\ContentInsight\Domain\Model\PresetDefinition;
 use Ttree\ContentInsight\Domain\Model\UriDefinition;
 use Ttree\ContentInsight\Utility\ResponseUtility;
@@ -186,7 +187,7 @@ class Crawler {
 			$content = $response->getContent();
 			$uri->setProperty('content_hash', md5($content));
 
-			$content = new DomCrawler($response->getContent());
+			$content = new HtmlDocument($response->getContent());
 
 			foreach ($this->currentPreset->getProperties() as $propertyName => $propertyConfiguration) {
 				if (!isset($propertyConfiguration['enabled']) || $propertyConfiguration['enabled'] !== TRUE) {
@@ -213,7 +214,7 @@ class Crawler {
 			$this->log($uri, 'Infinite Redirection');
 			$uri->markHasVisited();
 		} catch (CurlEngineException $exception) {
-			$this->log($uri, sprintf('URI "%s" skipped, curl error:', $uri, $exception->getMessage()));
+			$this->log($uri, sprintf('URI "%s" skipped, curl error: %s', $uri, $exception->getMessage()));
 			$this->systemLogger->logException($exception);
 		}
 	}
@@ -290,11 +291,11 @@ class Crawler {
 
 	/**
 	 * @param UriDefinition $uri
-	 * @param DomCrawler $content
+	 * @param HtmlDocument $document
 	 * @param integer $crawlingDepth
 	 */
-	protected function processChildLinks(UriDefinition $uri, DomCrawler $content, $crawlingDepth) {
-		foreach ($this->extractChildLinks($uri, $content) as $uriDefinition) {
+	protected function processChildLinks(UriDefinition $uri, HtmlDocument $document, $crawlingDepth) {
+		foreach ($this->extractChildLinks($uri, $document) as $uriDefinition) {
 			/** @var UriDefinition $uriDefinition */
 			try {
 				if ($crawlingDepth == 0) {
@@ -314,12 +315,12 @@ class Crawler {
 
 	/**
 	 * @param UriDefinition $uri
-	 * @param DomCrawler $content
+	 * @param HtmlDocument $document
 	 * @return array
 	 */
-	protected function extractChildLinks(UriDefinition $uri, DomCrawler $content) {
+	protected function extractChildLinks(UriDefinition $uri, HtmlDocument $document) {
 		$currentLinks = array();
-		$content->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
+		$document->getCrawler()->filter('a')->each(function (DomCrawler $node) use (&$currentLinks) {
 			$nodeLink = NULL;
 			try {
 				$nodeText = trim($node->text());
