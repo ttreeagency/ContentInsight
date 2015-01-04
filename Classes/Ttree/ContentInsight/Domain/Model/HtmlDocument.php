@@ -28,21 +28,28 @@ class HtmlDocument {
 	 * Constructor.
 	 *
 	 * @param mixed $content A Node to use as the base for the crawling
-	 * @param string $charset
+	 * @param string $encoding
 	 *
 	 * @api
 	 */
-	public function __construct($content = NULL, $charset = 'UTF-8') {
+	public function __construct($content = NULL, $encoding = NULL) {
 
-		$this->document = new \DOMDocument('1.0', $charset);
-		$this->document->validateOnParse = TRUE;
-
-		if (function_exists('mb_convert_encoding') && in_array(strtolower($charset), array_map('strtolower', mb_list_encodings()))) {
-			$content = mb_convert_encoding($content, 'HTML-ENTITIES', $charset);
+		if ($encoding === NULL) {
+			$encoding = mb_detect_encoding($content);
 		}
 
+		if ($encoding === FALSE || $encoding === NULL) {
+			throw new \InvalidArgumentException('Please provide a valid encoding for the current document, unable to detect the current encoding', 1417823522);
+		}
+
+		if ($encoding !== 'UTF-8') {
+			$content = mb_convert_encoding($content, 'UTF-8', $encoding);
+		}
+
+		$this->document = new \DOMDocument('1.0', $encoding);
+		$this->document->validateOnParse = TRUE;
+
 		@$this->document->loadHTML($content);
-		$this->document->formatOutput = TRUE;
 
 		$this->crawler = new Crawler($content);
 	}

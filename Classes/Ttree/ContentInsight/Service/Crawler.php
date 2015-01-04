@@ -87,6 +87,11 @@ class Crawler {
 	protected $currentPreset = array();
 
 	/**
+	 * @var string
+	 */
+	protected $encoding;
+
+	/**
 	 * Initialize Object
 	 */
 	public function initializeObject() {
@@ -123,6 +128,18 @@ class Crawler {
 	}
 
 	/**
+	 * @param string $encoding
+	 * @return $this
+	 */
+	public function setEncoding($encoding) {
+		if ($encoding !== NULL && !in_array(strtolower($encoding), array_map('strtolower', mb_list_encodings()))) {
+			throw new \InvalidArgumentException('Unsupported encoding', 1417822478);
+		}
+		$this->encoding = $encoding;
+		return $this;
+	}
+
+	/**
 	 * @param string $baseUri
 	 * @return array
 	 */
@@ -149,7 +166,7 @@ class Crawler {
 	 * @param integer $crawlingDepth
 	 * @return void
 	 */
-	public function crawlSingleUri(Uri $uri, $crawlingDepth = 0) {
+	protected function crawlSingleUri(Uri $uri, $crawlingDepth = 0) {
 		if (!$this->checkIfCrawlable($uri)) {
 			return;
 		}
@@ -187,7 +204,7 @@ class Crawler {
 			$content = $response->getContent();
 			$uri->setProperty('content_hash', md5($content));
 
-			$content = new HtmlDocument($response->getContent());
+			$content = new HtmlDocument($response->getContent(), $this->encoding);
 
 			foreach ($this->currentPreset->getProperties() as $propertyName => $propertyConfiguration) {
 				if (!isset($propertyConfiguration['enabled']) || $propertyConfiguration['enabled'] !== TRUE) {

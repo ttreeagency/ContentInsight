@@ -34,14 +34,16 @@ class ContentInventorCommandController extends CommandController {
 	 *
 	 * @param string $baseUrl
 	 * @param string $preset
+	 * @param string $encoding
 	 */
-	public function extractCommand($baseUrl, $preset = 'default') {
+	public function extractCommand($baseUrl, $preset = 'default', $encoding = NULL) {
 		$this->outputLine();
 		$this->outputLine('Content Inventory extraction tools ...');
 		try {
 			$uri = new Uri($baseUrl);
 			$this->outputLine(sprintf('Extract content from "%s%s"', $uri->getHost(), $uri->getPath()));
 			$inventory = $this->crawlerService
+				->setEncoding($encoding)
 				->setPreset($preset)
 				->crawlFromBaseUri($baseUrl);
 			$this->reportBuilder->build($inventory, $this->crawlerService->getCurrentPreset());

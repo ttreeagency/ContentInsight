@@ -47,8 +47,12 @@ Ttree:
                 postProcessor: 'Boolean'
               pageTitle:
                 label: 'Page Title'
+              pageTitleLength:
+                label: 'Page Title Length'
               statusCode:
                 label: 'Status Code'
+              contentType:
+                label: 'Content Type'
               redirectLocation:
                 label: 'Redirect Location'
               redirectStatusCode:
