@@ -12,12 +12,9 @@ cat <<EOF > composer.json
 		"bin-dir": "bin"
 	},
 	"require": {
-		"ttree/contentinsight": "dev-${TRAVIS_BRANCH}#${TRAVIS_COMMIT}",
+		"ttree/contentinsight": "dev-${GIT_BRANCH}#${GIT_COMMIT}",
 		"doctrine/migrations": "@dev",
-		"typo3/flow": "${FLOW_VERSION}",
-		"typo3/eel": "${FLOW_VERSION}",
-		"typo3/fluid": "${FLOW_VERSION}",
-		"typo3/party": "${FLOW_VERSION}"
+		"typo3/flow": "${FLOW_VERSION}"
 	},
 	"require-dev": {
 		"typo3/buildessentials": "${FLOW_VERSION}",
