@@ -31,7 +31,9 @@ cat <<EOF > composer.json
 }
 EOF
 
-composer install --prefer-source --dev
+cat composer.json
+
+composer update --dev --no-progress --no-interaction
 
 cat <<EOF > Configuration/Routes.yaml
 -
