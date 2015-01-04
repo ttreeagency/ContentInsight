@@ -24,9 +24,13 @@ class FirstLevelHeaderProcessorTest extends UnitTestCase {
 
 		$crawler = $this->getMockBuilder('Ttree\ContentInsight\Service\Crawler')->getMock();
 
-		$content = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
-		$content->expects($this->once())->method('filterXPath')->with('descendant-or-self::h1')->willReturn($content);
-		$content->expects($this->once())->method('count')->willReturn(2);
+		$content = $this->getMockBuilder('Ttree\ContentInsight\Domain\Model\HtmlDocument')->getMock();
+		$contentCrawler = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
+
+		$content->expects($this->once())->method('getCrawler')->willReturn($contentCrawler);
+		$contentCrawler->expects($this->once())->method('count')->willReturn(2);
+
+		$contentCrawler->expects($this->once())->method('filterXPath')->with('descendant-or-self::h1')->willReturn($contentCrawler);
 
 		$this->assertSame(array(
 			'firstLevelHeaderCount' => 2,

@@ -24,9 +24,13 @@ class MetaDescriptionProcessorTest extends UnitTestCase {
 
 		$crawler = $this->getMockBuilder('Ttree\ContentInsight\Service\Crawler')->getMock();
 
-		$content = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
-		$content->expects($this->once())->method('filterXPath')->with('html/head/meta[@name="description"]/@content')->willReturn($content);
-		$content->expects($this->once())->method('text')->willReturn('Page Meta Description');
+		$content = $this->getMockBuilder('Ttree\ContentInsight\Domain\Model\HtmlDocument')->getMock();
+		$contentCrawler = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
+
+		$content->expects($this->once())->method('getCrawler')->willReturn($contentCrawler);
+
+		$contentCrawler->expects($this->once())->method('filterXPath')->with('html/head/meta[@name="description"]/@content')->willReturn($contentCrawler);
+		$contentCrawler->expects($this->once())->method('text')->willReturn('Page Meta Description');
 
 		$this->assertSame('Page Meta Description', $processor->process($uri, $content, $crawler));
 	}

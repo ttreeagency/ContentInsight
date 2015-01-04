@@ -25,9 +25,13 @@ class MetaKeywordsProcessorTest extends UnitTestCase {
 
 		$crawler = $this->getMockBuilder('Ttree\ContentInsight\Service\Crawler')->getMock();
 
-		$content = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
-		$content->expects($this->once())->method('filterXPath')->with('html/head/meta[@name="keywords"]/@content')->willReturn($content);
-		$content->expects($this->once())->method('text')->willReturn('Hello World, Happy World');
+		$content = $this->getMockBuilder('Ttree\ContentInsight\Domain\Model\HtmlDocument')->getMock();
+		$contentCrawler = $this->getMockBuilder('Symfony\Component\DomCrawler\Crawler')->getMock();
+
+		$content->expects($this->once())->method('getCrawler')->willReturn($contentCrawler);
+
+		$contentCrawler->expects($this->once())->method('filterXPath')->with('html/head/meta[@name="keywords"]/@content')->willReturn($contentCrawler);
+		$contentCrawler->expects($this->once())->method('text')->willReturn('Hello World, Happy World');
 
 		$this->assertSame('Hello World, Happy World', $processor->process($uri, $content, $crawler));
 	}
